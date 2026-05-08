@@ -1,0 +1,5 @@
+tile_size = 256
+overlap = 0
+min_tiles = 5
+thumbnail_level = -1
+original_magnification_level = 0

@@ -23,17 +23,23 @@ Hist2Cell_data/
 example_data/
 example_data/*.tar.gz
 
-# --- Inference / preprocessing outputs (large .pt + thumbnails) ---
-inference/
+# --- Preprocessing scratch dirs ---
 prep_out/
+
+# inference/ kept tracked except for the multi-GB .pt files (covered below).
 
 # --- Saved patches and intermediate large files ---
 **/patches/
 **/2x_patches/
 *.h5ad
 *.h5
-*.npy
 *.npz
+# .npy is fine in inference/ (predictions are <15 MB); block elsewhere only if needed.
+
+# Allow the small per-slide coordinate sidecar files (~30 KB each) — they
+# carry the prep metadata needed to re-run inference without rebuilding
+# patches.
+!inference/**/*_coords.h5
 
 # --- PyTorch Geometric processed data ---
 # Ignores all *.pt PyG Data files. Note: *.pt does NOT match *.pth, so the
@@ -50,6 +56,9 @@ output*.png
 *.swp
 *.swo
 .DS_Store
+
+# --- Local agent / tool state ---
+.claude/
 
 # --- Logs ---
 *.log
