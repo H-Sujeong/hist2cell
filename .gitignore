@@ -1,4 +1,66 @@
-example_data/example_raw_data.tar.gz
-example_data/humanlung_cell2location_2x.tar.gz
-example_data/humanlung_cell2location.tar.gz
-example_data/*
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- Large data archives ---
+*.tar.gz
+*.tar
+*.zip
+*.7z
+
+# --- Hist2Cell datasets (untracked tar / unpacked) ---
+Hist2Cell_data/
+example_data/
+example_data/*.tar.gz
+
+# --- Inference / preprocessing outputs (large .pt + thumbnails) ---
+inference/
+prep_out/
+
+# --- Saved patches and intermediate large files ---
+**/patches/
+**/2x_patches/
+*.h5ad
+*.h5
+*.npy
+*.npz
+
+# --- PyTorch Geometric processed data ---
+# Ignores all *.pt PyG Data files. Note: *.pt does NOT match *.pth, so the
+# already-tracked model_weights/*.pth files (~57MB each) remain tracked.
+**/*.pt
+
+# --- Image outputs (debug / overlays) ---
+*.tmp.png
+output*.png
+
+# --- IDE / editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Large WSI files (in case any get copied here) ---
+*.svs
+*.ndpi
+*.tiff
+*.tif
+*.mrxs
+
+# --- Allow project tracked notebooks even though .ipynb pattern is broad ---
+# (no negation needed — we only ignore checkpoints, not .ipynb)
