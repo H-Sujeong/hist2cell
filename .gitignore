@@ -60,6 +60,10 @@ output*.png
 # --- Local agent / tool state ---
 .claude/
 
+# --- Framework sample/doc assets (not used at runtime) ---
+WSI_tile_sampling_framework/sampling/
+WSI_tile_sampling_framework/Docs/
+
 # --- Logs ---
 *.log
 logs/
