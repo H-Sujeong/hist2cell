@@ -60,6 +60,9 @@ output*.png
 # --- Local agent / tool state ---
 .claude/
 
+# --- Telegram conversation archive (per /remote, batches of 10 messages) ---
+remote/
+
 # --- Framework sample/doc assets (not used at runtime) ---
 WSI_tile_sampling_framework/sampling/
 WSI_tile_sampling_framework/Docs/
