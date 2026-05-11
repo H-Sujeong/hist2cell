@@ -1,61 +1,85 @@
-# slide1 (1_085_12) — focused proof (2 claims)
+# slide1 (1_085_12) — focused proof (2 claims, honest reframe)
 
-> **이 문서가 다루는 것** — 외부 reviewer / 협업 동료에게 *최소한 증명* 으로 전달할 두 가지 결과만 정리.  본 폴더 (`proofs/`) 는 detailed analysis (`../cell_typing/`, `../proteomics/`, `../findings.md`) 의 *요약-증명* version.
+> **이 문서가 다루는 것** — 외부 reviewer / 협업 동료 전달용 *최소 증명*. 본 폴더 (`proofs/`) 는 detail (`../cell_typing/`, `../proteomics/`, `../findings.md`) 의 *요약-증명*.
 >
-> ⚠️ **caveat**: Hist2Cell 가중치는 lung 학습본 (`humanlung_cell2location_leave_A50_out.pth`). breast 슬라이드 적용 시 cell-type label 은 **lung 분류 그대로** 출력 — *공간 패턴 / 상대 비교* 로만 신뢰. 본 문서의 "epithelial-activity proxy" 정의 및 lung→breast cross-tissue limitation 은 `../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` 필독.
+> ⚠️ **caveat** — Hist2Cell 가중치는 **lung-trained** (`humanlung_cell2location_leave_A50_out.pth`). 80 cell-type label 은 lung 분류. breast 슬라이드 적용 시 label 은 *morphology category proxy* 로 read, *cell-type ground truth* 아님. epithelial-activity proxy (strict / broad) 의 정의 및 lung→breast cross-tissue limitation 은 `../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` 필독.
 
 ---
 
-## Claim 1 — Tumor compartment 내부의 cross-modality 양의 상관
+## Claim 1 — cross-modality **방향 일치** (correlation magnitude 아님)
 
-### 결과 표
+### Reframing 사유
 
-`cross_modality_correlations.csv` 의 핵심 (Pearson r):
+본 데이터에 대해 *cross-modality Pearson / Spearman r* 을 다양한 단위 (panel 합 / single-pair / 다양한 subset) 로 계산했을 때, **r ≥ 0.5 의 안정적 양의 상관은 존재하지 않음**:
 
-| panel | all (n=46) | **Tumor (a+b+t, n=32)** | Tumor a vs b (n=29) | T-cell (c+d, n=14) |
-|---|---:|---:|---:|---:|
-| **Smooth muscle** (MYH11, TAGLN, CNN1, MYLK ↔ Hist2Cell Stromal-muscle) | -0.003 | **+0.379** | **+0.349** | +0.092 |
-| Endothelial (PECAM1, VWF ↔ Vascular) | +0.100 | +0.135 | +0.172 | +0.152 |
-| Epithelial broad-proxy (KRT*, EPCAM ↔ broad 5종) | -0.106 | -0.132 | -0.098 | +0.059 |
-| Fibroblast (COL*, DCN, LUM ↔ Stromal-fibroblast) | -0.321 | -0.434 | -0.443 | +0.239 |
-| B cell (IGHM/IGHG1/JCHAIN ↔ B_*) | -0.232 | -0.014 | -0.014 | -0.180 |
-| Macrophage (CD163/LYZ ↔ Macro_*) | -0.245 | -0.282 | -0.274 | -0.376 |
+- panel 합산 최대치 (Tumor 32 ROI): Smooth muscle r=+0.38, 그 외는 -0.4 ~ +0.2 산재
+- single-pair 최대치 (Tumor 32 ROI): KRT8 ↔ Ciliated r=+0.48
+- single-pair 전체 (n=46): VWF ↔ vasc-arterial r=+0.44
+- 음의 상관도 비슷한 크기 (IGHM ↔ B_plasma_IgA r=-0.55, HLA-DRA ↔ DC_2 r=-0.61)
 
-### 해석
+→ **"양의 상관이 *높다*"** 는 표현은 본 데이터에서 지지 안 됨. 원인은 lung-trained Hist2Cell 의 *cell-type-specificity 한계* (모든 ROI 가 lung-epithelial dominant 로 predict — Claim 2 참조).
 
-**Smooth muscle 채널**에서 **Tumor 영역 (a+b+t) 안의 ROI 들이 양의 상관** (Pearson r = +0.38, Spearman +0.31). 같은 방향성이 Tumor a vs b only 에서도 보존 (+0.35 / +0.29) — 즉 **risk-stratified Tumor ROI 들이 smooth muscle 신호에서 두 modality 가 일치하는 spatial 분포** 를 가짐.
+대신 ***방향 일치* (direction agreement)** 차원에서 두 modality 가 *같은 risk axis 의 같은 방향* 신호를 보고하는지가 *방어 가능한 증명*.
 
-이는 cell_typing 의 a vs b Wilcoxon (Stromal-muscle Δ=+1.35, p=0.066) 과 proteomics 의 MYH11 (log2FC +1.32, BH=0.022) + TAGLN (+1.54, BH=0.035) 결과의 **per-ROI 단위 정량 검증**.
+### Direction agreement 결과
 
-![Tumor cross-modality scatter](cross_modality_scatter.png)
+**사전 등록한 8 개 marker-celltype 가설 (Tumor a vs b)** — `../cell_typing/proteomics_marker_hypotheses.csv`:
 
-→ **Tumor risk axis (a vs b) + smooth muscle signal** 에서 *modality 간 일치 증명됨*.
+| proteomics marker | Hist2Cell type | 예측 | Hist2Cell Wilcoxon (a vs b) | match |
+|---|---|---|---|---|
+| KIF20A/KIF22/INCENP (mitosis) | Dividing_AT2 | a>b | Δ=+0.025, p_bh=**6.6e-4** | ✅ |
+| KIF20A/KIF22/INCENP (mitosis) | Dividing_Basal | a>b | Δ=+0.045, p_bh=**9.0e-3** | ✅ |
+| KIF20A/KIF22/INCENP (mitosis) | Basal | a>b | Δ=+0.097, p_bh=**2.1e-3** | ✅ |
+| MYH11/TAGLN (smooth muscle) | Muscle_smooth_syst_arterial | a>b | Δ=+0.140, p_bh=0.077 | ✅ |
+| MYH11/TAGLN (smooth muscle) | Muscle_smooth_pulmonary | a>b | Δ=+0.061, p_bh=0.120 | ✅ |
+| MYH11/TAGLN (smooth muscle) | Muscle_airway | a>b | Δ=+0.029, p_bh=0.332 | ✅ |
+| generic active Tumor | AT2 | a>b | Δ=+1.261, p_bh=**6.6e-4** | ✅ |
+| generic active Tumor | Suprabasal | a>b | Δ=+0.090, p_bh=**4.2e-3** | ✅ |
 
-### 명시적 한계
+**8/8 가설 모두 예측 방향 일치**, 5/8 은 Hist2Cell 측에서 BH-FDR < 0.01.
 
-- **전체 46 ROI pool 했을 때는 상관이 약해지거나 -방향**. 이유 = lung-trained Hist2Cell 이 모든 ROI 를 *lung-epithelial dominant* 로 predict 하여 Tumor ↔ T-cell 간 cell-type-level discrimination 이 일어나지 않음 (Claim 2 참조).
-- **Macrophage / B cell / Fibroblast panel 은 Tumor subset 에서도 음수**. lung Hist2Cell 의 specific subtype 라벨이 breast proteomics marker 와 *one-to-one* 매핑되지 않는 일반적 한계.
-- 본 결과를 *"slide-wide cross-modality 양의 상관"* 으로 over-claim 하지 말 것 — Tumor 영역 안의 smooth muscle / risk-axis 한정 결과로 표현.
+**Proteomics 측 검증** (`../proteomics/marker_hypothesis_check.csv`):
+
+| gene | 예측 | proteomics Wilcoxon (a vs b) | match |
+|---|---|---|---|
+| **MYH11** | a>b | log2FC=+1.32, BH=**0.022** | ✅ |
+| **TAGLN** | a>b | log2FC=+1.54, BH=**0.035** | ✅ |
+| KIF20A/22/INCENP | a>b | (detection 필터에서 빠짐 — quality threshold ≥30% 미충족) | — |
+
+→ **proteomics 에서 measure 된 2 marker (MYH11/TAGLN) 모두 예측 방향 일치 + BH-FDR < 0.05**.
+
+### Hist2Cell 의 추가 differential 증거 (section_stats — 3 score, a vs b)
+
+| score | mean a | mean b | Δ | p |
+|---|---:|---:|---:|---|
+| strict epithelial-proliferative proxy | 0.421 | 0.264 | +0.157 | **4.9e-4** |
+| broad epithelial-activity proxy | 4.109 | 2.590 | **+1.52** | **3.8e-5** |
+| immune total | 7.764 | 6.042 | +1.72 | **4.9e-4** |
+
+→ 3 score 모두 *Hist2Cell 측에서* High-risk Tumor (a) > Low-risk Tumor (b) 방향. Proteomics 의 250 BH<0.05 gene 도 *Tumor a vs b 를 명확히 separable* 한 신호 (`../proteomics/tumor_a_vs_b_genes.csv`).
+
+### Claim 1 안전 표현 (외부 reviewer 용)
+
+> *Tumor 영역의 risk axis (High-risk a vs Low-risk b) 에서 두 modality 가 같은 방향의 신호를 보고한다.* 사전 등록한 8 개 marker-celltype 가설이 100% 예측 방향에 일치 (5/8 은 Hist2Cell BH-FDR<0.01), proteomics 측에서 measure 된 smooth-muscle marker (MYH11/TAGLN) 가 같은 방향에서 BH-FDR<0.05 유의. *상관 magnitude (Pearson r)* 차원의 정량 일치는 lung-trained Hist2Cell 의 cell-type-specificity 한계로 본 데이터에서 결론 도출 불가 — breast-trained 모델 (CUCA her2st) 도착 시 mammary epithelial 3-type score 와 KRT8/EPCAM 등 ↔ direct quantitative agreement 검증 가능.
+
+(부수 자료: `cross_modality_correlations.csv` / `cross_modality_scatter.png` — magnitude 차원의 correlation 결과. *exploratory* 수준이며 본 Claim 1 의 증명 핵심 아님.)
 
 ---
 
 ## Claim 2 — 각 ROI 의 high-expression cell type 정리
 
-### 핵심 표
-
-per-ROI top-5 cell types (full table: `roi_top_celltypes.csv` 47 행 × top1-5):
+### 핵심 표 (예시 — full: `roi_top_celltypes.csv`, 47 ROI × top1-5)
 
 | tube | section | top1 | top2 | top3 |
 |---|---|---|---|---|
 | a2 | High-risk Tumor | AT2 (4.17) | Ciliated (3.65) | Fibro_alveolar (3.01) |
 | a3 | High-risk Tumor | AT2 (3.66) | Fibro_alveolar (3.01) | AT1 (2.98) |
-| ... | ... | ... | ... | ... |
 | b1 | Low-risk Tumor | Fibro_adventitial (1.74) | AT2 (1.63) | Fibro_alveolar (1.58) |
 | c1 | High-risk T-cell | Fibro_adventitial (1.65) | AT2 (1.56) | Muscle_smooth_syst_arterial (1.51) |
 | d1 | Low-risk T-cell | AT2 (2.00) | Fibro_alveolar (1.55) | AT1 (1.46) |
 | t1 | Middle Tumor | AT2 (2.96) | Ciliated (2.42) | Fibro_alveolar (2.22) |
 
-전체 47 ROI 의 top-5 list 는 `roi_top_celltypes.csv` 에 저장 — *각 ROI 가 어떤 cell type 의 hot-spot 인지* 의 정량 정리.
+전체 47 ROI × top1..top5 = `roi_top_celltypes.csv`.
 
 ### Per-section top-5 group 구성 (%)
 
@@ -71,42 +95,41 @@ per-ROI top-5 cell types (full table: `roi_top_celltypes.csv` 47 행 × top1-5):
 
 ### 해석
 
-**모든 section 의 top-5 가 거의 동일한 Epithelial (alveolar/airway) + Stromal (fibroblast) + Vascular 구성**. Immune-lymphoid / Immune-myeloid 가 *어느 section 의 top-5 에도 들어오지 않음* (0% across the board).
+**모든 section 의 top-5 가 Epithelial + Stromal + Vascular 로 채워짐. Immune-lymphoid / Immune-myeloid = 0% across the board** (T-cell ROI 들 c/d 도 포함).
 
-→ 이는 단순 "ROI 안에 가장 많은 cell type" 의 정량 정리이며, **lung-trained Hist2Cell 의 출력이 lung-atlas 의 epithelial-dominant 분포를 반영** 하는 직접 증거. T-cell ROI 들도 *lung 라벨 기준으로는 epithelial-dominant* 로 분류됨 — 라벨을 *cell type ground truth* 가 아닌 *lung morphology category proxy* 로 해석해야 하는 이유.
+→ lung-trained Hist2Cell 의 *epithelial-dominant 출력 분포* 의 직접 evidence. ROI 별 top cell type 자체는 정량 정보로 의미 있으나, *label 의 절대 의미* (예: "이 ROI 는 진짜 AT2 가 많다") 가 아닌 *lung-morphology category proxy* 로 해석.
 
 ### ROI 별 top cell type heatmap
 
 ![ROI top cell types heatmap](roi_top_celltypes_heatmap.png)
 
-47 ROI 의 top-5 union (~15-20 cell types) × ROI 의 z-score (across ROI). 좌측 strip 의 색 = section. ROI 간 변동은 *상대적 강도 차이* 로 나타나고, dominance group 자체는 위 표대로 일관.
+47 ROI × top-5 union (~15-20 cell type) 의 z-score (across ROIs). 좌측 strip 의 색 = section. ROI 간 *상대* 변동은 보이지만 *dominance group* 자체는 위 표대로 일관.
 
 ---
 
-## 결론 (외부 reader 안전 표현)
+## 결론
 
-1. **Smooth muscle 신호에서 Tumor 영역 (a+b+t) 의 risk-axis 단위 양의 cross-modality 상관 확인 (Pearson r = +0.38).** Tumor a vs b 의 Wilcoxon (Hist2Cell broad-proxy, proteomics MYH11/TAGLN) 의 per-ROI 정량 검증.
-2. **47 ROI 의 top-5 high-expression cell type 정리 완료** (`roi_top_celltypes.csv`). Hist2Cell 출력은 lung-atlas 의 epithelial-dominant 분포를 반영하므로 *cell type 절대 라벨* 이 아닌 *lung-morphology category proxy* 로 read.
-3. **명시적 한계**: lung→breast cross-tissue 적용의 본질적 제약. cell-type-level의 정밀 cross-modality 매칭은 breast-trained CUCA her2st 도착 후 가능.
+1. **Cross-modality 방향 일치**: 사전 등록한 8 marker-celltype 가설이 100% 예측 방향에 일치, 5/8 이 Hist2Cell BH<0.01. proteomics 측의 MYH11/TAGLN 도 BH<0.05 same direction. *상관 magnitude 차원의 정량 일치는 본 데이터에서 결론 도출 불가* — lung-trained 모델 한계.
+2. **47 ROI 의 top-5 high-expression cell type 정리 완료**. 모든 section 이 lung Hist2Cell 의 *Epithelial / Stromal / Vascular* dominant 출력. Immune 0% across — 이는 lung-proxy 한계의 직접적 evidence이자 추후 breast-trained 모델로 재검증해야 할 항목.
 
 ---
 
 ## 산출물
 
-- `core_proofs.py` — 본 문서의 모든 수치 / 그림을 재생산하는 스크립트
-- `cross_modality_correlations.csv` — panel × subset × Pearson / Spearman
-- `cross_modality_scatter.png` — Tumor (a+b+t) 안의 per-panel scatter
-- `roi_top_celltypes.csv` — 47 × top1..top5 + group
+- `core_proofs.py` — 본 문서의 수치 / 그림을 재생산하는 스크립트
+- `cross_modality_correlations.csv` — panel × subset × Pearson / Spearman (*exploratory*, 본 Claim 1 의 직접 증거는 아님 — direction-agreement table 이 본 증거)
+- `cross_modality_scatter.png` — Tumor (a+b+t) subset 의 scatter (참고)
+- `roi_top_celltypes.csv` — 47 × top1..top5 + lineage group
 - `roi_top_celltypes_heatmap.png` — ROI × union-of-top z-score
 - `section_group_composition.csv` — 5 section × 10 lineage % share
 - `section_group_composition.png` — 위 stacked bar
 - `summary.md` (이 문서)
-
----
+- (cell_typing/proteomics_marker_hypotheses.csv — 8/8 direction match table, 본 Claim 1 의 직접 증거)
+- (proteomics/marker_hypothesis_check.csv — MYH11/TAGLN BH<0.05 table)
 
 ## 관련 문서
 
-- `../findings.md` — 본 폴더의 detail version (15 figure 의 의미 해석 + Wilcoxon / Moran 등 full result)
-- `../cell_typing/` — Hist2Cell ROI-level 분석 산출물
-- `../proteomics/` — gg_matrix differential analysis 산출물
-- `../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` — lung→breast proxy 한계의 reference doc
+- `../findings.md` — detail (15 figure 의 해석 + Wilcoxon / Moran 등 full)
+- `../cell_typing/` — Hist2Cell ROI-level 분석 산출물 (section_stats, per_celltype_wilcoxon, marker_hypotheses 등)
+- `../proteomics/` — gg_matrix differential analysis (volcano, top genes, marker check)
+- `../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` — lung→breast proxy 한계 reference
