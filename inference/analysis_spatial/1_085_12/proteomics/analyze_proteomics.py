@@ -248,13 +248,22 @@ def plot_top_markers_heatmap(per_gene_df, log2_df, slide1_cols, out_path,
     if len(top) == 0:
         return
     rows = top["gene"].tolist()
-    matrix = log2_df.loc[log2_df.index[log2_df.index.isin(top.index)], slide1_cols]
-    # gene-wise z-score for visual normalization
-    m = matrix.values.copy()
+    # filter log2_df to top gene names; preserve BH-sorted order.
+    # log2_df.index is gene-name (a string), so use .loc[gene_name].
+    # gg_matrix can have duplicated gene names — drop_duplicates keeps the
+    # first occurrence so each row in `matrix` is unique.
+    log2_unique = log2_df[~log2_df.index.duplicated(keep="first")]
+    present = [g for g in rows if g in log2_unique.index]
+    matrix = log2_unique.loc[present, slide1_cols]
+    rows = present  # final row order
+    # gene-wise z-score for visual normalization (NaN-safe)
+    m = matrix.values.astype(float).copy()
     means = np.nanmean(m, axis=1, keepdims=True)
     stds  = np.nanstd(m, axis=1, keepdims=True)
     stds[stds == 0] = 1.0
     Z = (m - means) / stds
+    # NaN cells are kept as NaN so imshow shows them transparent / via cmap.set_bad
+    Z = np.ma.masked_invalid(Z)
     # sort columns by section then index
     col_order = sorted(slide1_cols, key=lambda c: (SECTION_ORDER.index(c[0]),
                                                     int(c[1:]) if c[1:].isdigit() else 0))
@@ -262,7 +271,9 @@ def plot_top_markers_heatmap(per_gene_df, log2_df, slide1_cols, out_path,
     Z = Z[:, col_idx]
 
     fig, ax = plt.subplots(figsize=(15, max(6, 0.35 * len(rows))))
-    im = ax.imshow(Z, aspect="auto", cmap="vlag", vmin=-2.5, vmax=2.5)
+    cmap = plt.get_cmap("vlag").copy()
+    cmap.set_bad(color="#dddddd")     # NaN cells = light grey
+    im = ax.imshow(Z, aspect="auto", cmap=cmap, vmin=-2.5, vmax=2.5)
     ax.set_xticks(np.arange(len(col_order)))
     ax.set_xticklabels(col_order, rotation=90, fontsize=7)
     ax.set_yticks(np.arange(len(rows)))
