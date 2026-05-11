@@ -5,13 +5,18 @@ Inputs (already produced by `prep/prepare_wsi_for_inference_v2.py` +
     - predictions.csv : spot_id, X, Y, <80 cell-type abundance columns>
     - <slide>_coords.h5 : level-0 tile coordinates and metadata
     - cell_type_groups.csv : lineage grouping of the 80 lung cell types
+                             + `is_strict_proxy` / `is_broad_proxy` flags
+                             (see EPITHELIAL_PROXY_METHODOLOGY.md)
 
 Outputs (written to --output):
     - abundance_by_celltype.csv : per-cell-type mean / median / max / fraction-nonzero
-    - abundance_by_group.csv    : per-group total mean / spot-fraction (also for cancer-proxy)
+    - abundance_by_group.csv    : per-group total mean / spot-fraction; also two
+                                  pseudo-groups: "Strict epithelial-proliferative
+                                  proxy" (3 types) and "Broad epithelial-activity
+                                  proxy" (5 types)
     - spatial_top10_celltypes.png : 10-panel scatter of top-mean cell types
     - spatial_group_heatmaps.png  : one panel per group, abundance summed over the group
-    - spatial_immune_vs_cancer.png : 1×2 panel — immune total vs proliferative-epithelial total
+    - spatial_immune_vs_epithelial.png : 1×3 panel — immune total / strict proxy / broad proxy
     - moran_r_pairs.csv         : bivariate Moran's R for every cell-pair (3160 rows)
     - moran_r_clustermap.png    : hierarchical clustermap of the 80×80 R matrix
 
@@ -23,9 +28,10 @@ Usage:
         --output      inference/analysis/slide1_085_12_v2
 
 Caveat: the model was trained on healthy human lung; cell-type column names
-are lung-specific. The "cancer proxy" group is `is_cancer_proxy=1` rows in
-groups CSV (proliferative epithelial: AT2, Basal, Suprabasal, Dividing_AT2,
-Dividing_Basal). It is NOT a breast cancer prediction — see README.md.
+are lung-specific. The two epithelial-activity proxies are NOT tumor
+detectors — they are lung-derived spatial proxies whose breast-context
+validity is itself a hypothesis to be tested by an external breast-trained
+model (CUCA her2st). See EPITHELIAL_PROXY_METHODOLOGY.md and README.md.
 """
 
 import argparse
@@ -91,12 +97,16 @@ def per_celltype_stats(preds, cell_cols):
 
 
 def per_group_stats(preds, groups_df, cell_cols):
-    """Sum predictions within each group; also produce a 'cancer_proxy' pseudo-group."""
+    """Sum predictions within each lineage group; also produce two pseudo-groups
+    for the strict (3-type) and broad (5-type) epithelial-activity proxies.
+    See EPITHELIAL_PROXY_METHODOLOGY.md for the rationale of the two scores."""
     name_to_idx = {n: i for i, n in enumerate(cell_cols)}
     rows = []
     grouping = list(groups_df.groupby("group"))
-    grouping.append(("Cancer-proxy (proliferative epithelial)",
-                     groups_df[groups_df["is_cancer_proxy"] == 1]))
+    grouping.append(("Strict epithelial-proliferative proxy",
+                     groups_df[groups_df["is_strict_proxy"] == 1]))
+    grouping.append(("Broad epithelial-activity proxy",
+                     groups_df[groups_df["is_broad_proxy"] == 1]))
     for gname, g in grouping:
         idx = [name_to_idx[c] for c in g["cell_type"].tolist()]
         sub = preds[:, idx]
@@ -158,21 +168,31 @@ def plot_groups(meta_df, preds, groups_df, cell_cols, out_path):
     plt.close(fig)
 
 
-def plot_immune_vs_cancer(meta_df, preds, groups_df, cell_cols, out_path):
+def plot_immune_vs_epithelial(meta_df, preds, groups_df, cell_cols, out_path):
+    """3-panel: immune total / strict epithelial-proliferative / broad epithelial-activity.
+
+    The two epithelial scores are NOT tumor detectors — they are lung-derived
+    proxies (strict = Basal/Dividing_AT2/Dividing_Basal; broad = +AT2/Suprabasal).
+    See EPITHELIAL_PROXY_METHODOLOGY.md."""
     name_to_idx = {n: i for i, n in enumerate(cell_cols)}
     immune_members = groups_df[groups_df["group"].isin(["Immune-lymphoid", "Immune-myeloid"])]["cell_type"].tolist()
-    cancer_members = groups_df[groups_df["is_cancer_proxy"] == 1]["cell_type"].tolist()
+    strict_members = groups_df[groups_df["is_strict_proxy"] == 1]["cell_type"].tolist()
+    broad_members  = groups_df[groups_df["is_broad_proxy"]  == 1]["cell_type"].tolist()
     immune_idx = [name_to_idx[c] for c in immune_members]
-    cancer_idx = [name_to_idx[c] for c in cancer_members]
+    strict_idx = [name_to_idx[c] for c in strict_members]
+    broad_idx  = [name_to_idx[c] for c in broad_members]
     immune_sum = preds[:, immune_idx].sum(axis=1)
-    cancer_sum = preds[:, cancer_idx].sum(axis=1)
-    fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+    strict_sum = preds[:, strict_idx].sum(axis=1)
+    broad_sum  = preds[:, broad_idx].sum(axis=1)
+    fig, axes = plt.subplots(1, 3, figsize=(22, 6))
     _scatter(axes[0], meta_df["X"], meta_df["Y"], immune_sum,
-             f"Immune total (n={len(immune_idx)} cell types)  μ={immune_sum.mean():.2f}")
-    _scatter(axes[1], meta_df["X"], meta_df["Y"], cancer_sum,
-             f"Proliferative-epithelial proxy (n={len(cancer_idx)})  μ={cancer_sum.mean():.2f}")
-    fig.suptitle("Immune (left) vs cancer-proxy (right) spatial signal\n"
-                 "(lung-trained model → see README caveat)", fontsize=11)
+             f"Immune total (n={len(immune_idx)})  μ={immune_sum.mean():.2f}")
+    _scatter(axes[1], meta_df["X"], meta_df["Y"], strict_sum,
+             f"Strict epithelial-proliferative proxy (n={len(strict_idx)})  μ={strict_sum.mean():.2f}")
+    _scatter(axes[2], meta_df["X"], meta_df["Y"], broad_sum,
+             f"Broad epithelial-activity proxy (n={len(broad_idx)})  μ={broad_sum.mean():.2f}")
+    fig.suptitle("Immune vs strict / broad epithelial-activity proxy\n"
+                 "(lung-trained model → see EPITHELIAL_PROXY_METHODOLOGY.md)", fontsize=11)
     plt.tight_layout()
     fig.savefig(out_path, dpi=110, bbox_inches="tight")
     plt.close(fig)
@@ -286,7 +306,8 @@ def main():
     print(f"[load] groups       = {args.groups}")
     groups_df = load_groups(args.groups, cell_cols)
     print(f"       groups: {sorted(groups_df['group'].unique())}")
-    print(f"       cancer-proxy: {groups_df[groups_df['is_cancer_proxy']==1]['cell_type'].tolist()}")
+    print(f"       strict proxy (3): {groups_df[groups_df['is_strict_proxy']==1]['cell_type'].tolist()}")
+    print(f"       broad  proxy (5): {groups_df[groups_df['is_broad_proxy']==1]['cell_type'].tolist()}")
 
     # --- per-celltype stats ---
     print("[stats] per-cell-type")
@@ -303,8 +324,9 @@ def main():
     plot_top10(meta_df, preds, cell_cols, ct_stats, args.output / "spatial_top10_celltypes.png")
     print("[plot] groups")
     plot_groups(meta_df, preds, groups_df, cell_cols, args.output / "spatial_group_heatmaps.png")
-    print("[plot] immune vs cancer")
-    plot_immune_vs_cancer(meta_df, preds, groups_df, cell_cols, args.output / "spatial_immune_vs_cancer.png")
+    print("[plot] immune vs epithelial (strict + broad)")
+    plot_immune_vs_epithelial(meta_df, preds, groups_df, cell_cols,
+                              args.output / "spatial_immune_vs_epithelial.png")
 
     # --- Moran's R ---
     print(f"[moran] kNN(k={args.knn}) weight matrix")

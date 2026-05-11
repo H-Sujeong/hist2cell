@@ -1,81 +1,81 @@
-cell_type,group,is_cancer_proxy,note
-AT1,Epithelial-alveolar,0,alveolar type 1
-AT2,Epithelial-alveolar,1,alveolar type 2 (progenitor — proliferative epithelial proxy)
-Basal,Epithelial-airway,1,airway basal stem cell (proliferative epithelial proxy)
-Ciliated,Epithelial-airway,0,
-Deuterosomal,Epithelial-airway,0,ciliated-progenitor intermediate
-Dividing_AT2,Epithelial-alveolar,1,explicitly dividing AT2 (proliferative epithelial proxy)
-Dividing_Basal,Epithelial-airway,1,explicitly dividing basal (proliferative epithelial proxy)
-Ionocyte_n_Brush,Epithelial-airway,0,
-Myoepithelial,Epithelial-airway,0,gland myoepithelial
-Neuroendocrine,Epithelial-airway,0,specialized epithelial
-SMG_Basal,Epithelial-airway,0,submucosal gland basal
-SMG_Duct,Epithelial-airway,0,submucosal gland duct
-SMG_Mucous,Epithelial-airway,0,submucosal gland mucous
-SMG_Serous,Epithelial-airway,0,submucosal gland serous
-Secretory_Club,Epithelial-airway,0,
-Secretory_Goblet,Epithelial-airway,0,
-Suprabasal,Epithelial-airway,1,suprabasal layer (proliferative epithelial proxy)
-B_memory,Immune-lymphoid,0,B cell
-B_naive,Immune-lymphoid,0,B cell
-B_plasma_IgA,Immune-lymphoid,0,plasma cell
-B_plasma_IgG,Immune-lymphoid,0,plasma cell
-B_plasmablast,Immune-lymphoid,0,
-CD4_EM_Effector,Immune-lymphoid,0,T cell
-CD4_TRM,Immune-lymphoid,0,T cell
-CD4_naive_CM,Immune-lymphoid,0,T cell
-CD8_EM,Immune-lymphoid,0,T cell
-CD8_EM_EMRA,Immune-lymphoid,0,T cell
-CD8_TRM_EM,Immune-lymphoid,0,T cell
-CD8_TRM,Immune-lymphoid,0,T cell
-ILC,Immune-lymphoid,0,innate lymphoid cell
-MAIT,Immune-lymphoid,0,mucosal-associated invariant T
-NK_CD16hi,Immune-lymphoid,0,NK cell
-NK_CD11d,Immune-lymphoid,0,NK cell
-NK_CD56bright,Immune-lymphoid,0,NK cell
-NKT,Immune-lymphoid,0,
-T_reg,Immune-lymphoid,0,regulatory T
-gdT,Immune-lymphoid,0,gamma-delta T
-DC_1,Immune-myeloid,0,dendritic
-DC_2,Immune-myeloid,0,dendritic
-DC_activated,Immune-myeloid,0,dendritic
-DC_plasmacytoid,Immune-myeloid,0,dendritic
-Macro_CHIT1,Immune-myeloid,0,macrophage
-Macro_interstitial,Immune-myeloid,0,macrophage
-Macro_AW_CX3CR1,Immune-myeloid,0,macrophage (airway)
-Macro_alveolar_metallothioneins,Immune-myeloid,0,macrophage (alveolar)
-Macro_alv,Immune-myeloid,0,macrophage (alveolar)
-Macro_dividing,Immune-myeloid,0,proliferating macrophage
-Macro_int,Immune-myeloid,0,macrophage (interstitial)
-Macro_CCL,Immune-myeloid,0,macrophage (CCL+)
-Macrophage_intermediate,Immune-myeloid,0,macrophage
-Mast_cell,Immune-myeloid,0,granulocyte
-Monocyte_CD14,Immune-myeloid,0,classical monocyte
-Monocyte_CD16,Immune-myeloid,0,non-classical monocyte
-Endothelia_Lymphatic,Vascular,0,lymphatic
-Endothelia_vascular_Cap_a,Vascular,0,capillary aerocyte
-Endothelia_vascular_Cap_g,Vascular,0,capillary general
-Endothelia_vascular_arterial_pulmonary,Vascular,0,arterial
-Endothelia_vascular_arterial_systemic,Vascular,0,arterial
-Endothelia_vascular_venous_pulmonary,Vascular,0,venous
-Endothelia_vascular_venous_systemic,Vascular,0,venous
-Fibro_adventitial,Stromal-fibroblast,0,
-Fibro_alveolar,Stromal-fibroblast,0,
-Fibro_immune_recruiting,Stromal-fibroblast,0,
-Fibro_myofibroblast,Stromal-fibroblast,0,
-Fibro_peribronchial,Stromal-fibroblast,0,
-Fibro_perichondrial,Stromal-fibroblast,0,
-Muscle_airway,Stromal-muscle,0,
-Muscle_pericyte_airway,Stromal-muscle,0,pericyte
-Muscle_pericyte_parenchyma,Stromal-muscle,0,pericyte
-Muscle_perivascular_immune_recruiting,Stromal-muscle,0,
-Muscle_smooth_pulmonary,Stromal-muscle,0,
-Muscle_smooth_syst_arterial,Stromal-muscle,0,
-Chondrocyte,Stromal-other,0,cartilage
-Mesothelia,Stromal-other,0,pleural mesothelium
-NAF_endoneurial,Stromal-other,0,nerve-associated fibroblast
-NAF_perineurial,Stromal-other,0,nerve-associated fibroblast
-Schwann_Myelinating,Neural,0,
-Schwann_nonmyelinating,Neural,0,
-Erythrocyte,Other-blood,0,red blood cell
-Megakaryocyte,Other-blood,0,platelet precursor
+cell_type,group,is_strict_proxy,is_broad_proxy,note
+AT1,Epithelial-alveolar,0,0,alveolar type 1
+AT2,Epithelial-alveolar,0,1,alveolar type 2 (broad-only — cross-tissue mapping is a verification hypothesis)
+Basal,Epithelial-airway,1,1,airway basal stem cell (TP63+/KRT5+/KRT14+) — strongest cross-tissue marker analogy
+Ciliated,Epithelial-airway,0,0,
+Deuterosomal,Epithelial-airway,0,0,ciliated-progenitor intermediate
+Dividing_AT2,Epithelial-alveolar,1,1,explicitly dividing AT2 — model-derived proliferative-like signal
+Dividing_Basal,Epithelial-airway,1,1,explicitly dividing basal — model-derived proliferative-like signal
+Ionocyte_n_Brush,Epithelial-airway,0,0,
+Myoepithelial,Epithelial-airway,0,0,gland myoepithelial
+Neuroendocrine,Epithelial-airway,0,0,specialized epithelial
+SMG_Basal,Epithelial-airway,0,0,submucosal gland basal
+SMG_Duct,Epithelial-airway,0,0,submucosal gland duct
+SMG_Mucous,Epithelial-airway,0,0,submucosal gland mucous
+SMG_Serous,Epithelial-airway,0,0,submucosal gland serous
+Secretory_Club,Epithelial-airway,0,0,
+Secretory_Goblet,Epithelial-airway,0,0,
+Suprabasal,Epithelial-airway,0,1,suprabasal transitional layer (broad-only sensitivity — no direct breast counterpart)
+B_memory,Immune-lymphoid,0,0,B cell
+B_naive,Immune-lymphoid,0,0,B cell
+B_plasma_IgA,Immune-lymphoid,0,0,plasma cell
+B_plasma_IgG,Immune-lymphoid,0,0,plasma cell
+B_plasmablast,Immune-lymphoid,0,0,
+CD4_EM_Effector,Immune-lymphoid,0,0,T cell
+CD4_TRM,Immune-lymphoid,0,0,T cell
+CD4_naive_CM,Immune-lymphoid,0,0,T cell
+CD8_EM,Immune-lymphoid,0,0,T cell
+CD8_EM_EMRA,Immune-lymphoid,0,0,T cell
+CD8_TRM_EM,Immune-lymphoid,0,0,T cell
+CD8_TRM,Immune-lymphoid,0,0,T cell
+ILC,Immune-lymphoid,0,0,innate lymphoid cell
+MAIT,Immune-lymphoid,0,0,mucosal-associated invariant T
+NK_CD16hi,Immune-lymphoid,0,0,NK cell
+NK_CD11d,Immune-lymphoid,0,0,NK cell
+NK_CD56bright,Immune-lymphoid,0,0,NK cell
+NKT,Immune-lymphoid,0,0,
+T_reg,Immune-lymphoid,0,0,regulatory T
+gdT,Immune-lymphoid,0,0,gamma-delta T
+DC_1,Immune-myeloid,0,0,dendritic
+DC_2,Immune-myeloid,0,0,dendritic
+DC_activated,Immune-myeloid,0,0,dendritic
+DC_plasmacytoid,Immune-myeloid,0,0,dendritic
+Macro_CHIT1,Immune-myeloid,0,0,macrophage
+Macro_interstitial,Immune-myeloid,0,0,macrophage
+Macro_AW_CX3CR1,Immune-myeloid,0,0,macrophage (airway)
+Macro_alveolar_metallothioneins,Immune-myeloid,0,0,macrophage (alveolar)
+Macro_alv,Immune-myeloid,0,0,macrophage (alveolar)
+Macro_dividing,Immune-myeloid,0,0,proliferating macrophage
+Macro_int,Immune-myeloid,0,0,macrophage (interstitial)
+Macro_CCL,Immune-myeloid,0,0,macrophage (CCL+)
+Macrophage_intermediate,Immune-myeloid,0,0,macrophage
+Mast_cell,Immune-myeloid,0,0,granulocyte
+Monocyte_CD14,Immune-myeloid,0,0,classical monocyte
+Monocyte_CD16,Immune-myeloid,0,0,non-classical monocyte
+Endothelia_Lymphatic,Vascular,0,0,lymphatic
+Endothelia_vascular_Cap_a,Vascular,0,0,capillary aerocyte
+Endothelia_vascular_Cap_g,Vascular,0,0,capillary general
+Endothelia_vascular_arterial_pulmonary,Vascular,0,0,arterial
+Endothelia_vascular_arterial_systemic,Vascular,0,0,arterial
+Endothelia_vascular_venous_pulmonary,Vascular,0,0,venous
+Endothelia_vascular_venous_systemic,Vascular,0,0,venous
+Fibro_adventitial,Stromal-fibroblast,0,0,
+Fibro_alveolar,Stromal-fibroblast,0,0,
+Fibro_immune_recruiting,Stromal-fibroblast,0,0,
+Fibro_myofibroblast,Stromal-fibroblast,0,0,
+Fibro_peribronchial,Stromal-fibroblast,0,0,
+Fibro_perichondrial,Stromal-fibroblast,0,0,
+Muscle_airway,Stromal-muscle,0,0,
+Muscle_pericyte_airway,Stromal-muscle,0,0,pericyte
+Muscle_pericyte_parenchyma,Stromal-muscle,0,0,pericyte
+Muscle_perivascular_immune_recruiting,Stromal-muscle,0,0,
+Muscle_smooth_pulmonary,Stromal-muscle,0,0,
+Muscle_smooth_syst_arterial,Stromal-muscle,0,0,
+Chondrocyte,Stromal-other,0,0,cartilage
+Mesothelia,Stromal-other,0,0,pleural mesothelium
+NAF_endoneurial,Stromal-other,0,0,nerve-associated fibroblast
+NAF_perineurial,Stromal-other,0,0,nerve-associated fibroblast
+Schwann_Myelinating,Neural,0,0,
+Schwann_nonmyelinating,Neural,0,0,
+Erythrocyte,Other-blood,0,0,red blood cell
+Megakaryocyte,Other-blood,0,0,platelet precursor

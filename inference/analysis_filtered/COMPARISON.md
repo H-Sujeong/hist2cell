@@ -34,10 +34,10 @@ group 이 +20–60% 상승.
 | Stromal-fibroblast | 1.814 | 2.745 | +51.3% |
 | Epithelial-alveolar | 1.458 | 1.897 | +30.1% |
 | Immune-lymphoid | 1.245 | 1.717 | +37.9% |
-| Cancer-proxy | 1.013 | 1.293 | +27.6% |
+| Broad epithelial-activity proxy | 1.013 | 1.293 | +27.6% |
 
 **그룹 순위 변화 거의 없음** — Stromal-muscle 1위, Stromal-fibroblast 2위 패턴
-유지. cancer-proxy 비중도 비슷. 즉 slide1 의 "stromal-rich, cancer-proxy 중간"
+유지. broad epithelial-activity proxy 비중도 비슷. 즉 slide1 의 "stromal-rich, broad-proxy 중간"
 결론은 robust.
 
 ### 3. slide2 — Secretory_Goblet 이 -54%, 압축적 Epithelial-airway 우세 약화
@@ -53,7 +53,7 @@ group 이 +20–60% 상승.
 |---|---:|---:|---:|
 | Epithelial-airway | 2.706 | 2.591 | **-4.3%** |
 | Epithelial-alveolar | 1.802 | 2.379 | +32.0% |
-| Cancer-proxy | 1.427 | 1.730 | +21.3% |
+| Broad epithelial-activity proxy | 1.427 | 1.730 | +21.3% |
 
 **slide2 는 큰 변화** — Secretory_Goblet 이 -54%, Ciliated 가 -10% 떨어졌고
 Epithelial-airway 그룹 전체가 -4% (다른 그룹은 +30~40% 상승하는 와중). 즉
@@ -89,12 +89,12 @@ slide2:
 | 항목 | slide1 | slide2 |
 |---|---|---|
 | 그룹 순위 | 변화 거의 없음 | Epithelial-airway 약화, alveolar 강화 |
-| cancer-proxy 패턴 | 유지 (+27.6%) | 유지 (+21.3%) |
+| broad epithelial-activity proxy 패턴 | 유지 (+27.6%) | 유지 (+21.3%) — 단 broad-dominant 비율은 17.7% → 3.6% 로 큰 감소 |
 | Goblet/Ciliated | 변화 없음 | **명확히 감소** (Goblet -54%) |
 | Moran R | 약간 감소 (-8%) | 명확히 감소 (-20%) |
 | 가장 큰 정성적 변화 | 거의 없음 | mucinous compartment 신호 손실 |
 
-원본 분석의 정성적 결론은 두 슬라이드 모두 대체로 robust (cancer-proxy /
+원본 분석의 정성적 결론은 두 슬라이드 모두 대체로 robust (epithelial-activity proxy /
 immune-cluster 패턴 유지). 다만 **slide2 의 "Goblet–immune mutual exclusion"
 은 큰 덩어리 바깥의 ciliated/mucinous 섹션의 기여가 크다** — 가장 큰 덩어리
 하나만 보면 그 신호가 약해진다는 점이 의미 있는 발견.

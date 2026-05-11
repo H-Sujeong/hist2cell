@@ -226,14 +226,18 @@ tail -f /tmp/infer.log | grep -E "gpu0|done|Saved"
 `inference/analysis/cell_type_groups.csv` 가 표준. 헤더:
 
 ```
-cell_type,group,is_cancer_proxy,note
-AT2,Epithelial-alveolar,1,alveolar type 2 (proliferative epithelial proxy)
+cell_type,group,is_strict_proxy,is_broad_proxy,note
+Basal,Epithelial-airway,1,1,airway basal stem cell (strongest cross-tissue marker)
+AT2,Epithelial-alveolar,0,1,alveolar type 2 (broad-only — verification hypothesis)
+Dividing_AT2,Epithelial-alveolar,1,1,explicitly dividing AT2 (proliferative-like signal)
 …
 ```
 
+자세한 설계 근거는 `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md` (strict 3종 + broad 5종 의 cross-tissue 신뢰도 + reference 13 개).
+
 총 80 row, 모든 cell type 의 `cell_type` 이 정확히 `cell_types.pkl` 의 80 이름과 set 일치 해야 함 (`analyze.py` 가 시작 시 검증).
 
-**다른 조직 / 다른 가중치를 쓰면** 본 80 cell type 분류는 의미가 달라진다. 자기 케이스에 맞게 group / cancer_proxy 직접 정의 권장.
+**다른 조직 / 다른 가중치를 쓰면** 본 80 cell type 분류는 의미가 달라진다. 자기 케이스에 맞게 group / epithelial-activity proxy flags 직접 정의 권장.
 
 ### 4.3 일반 케이스
 
@@ -261,10 +265,10 @@ python inference/analysis/analyze.py \
 ```
 inference/analysis/my_slide_v2/
 ├── abundance_by_celltype.csv    # 80 type 별 mean/median/max/fraction-nonzero
-├── abundance_by_group.csv       # 그룹 합 + cancer-proxy
+├── abundance_by_group.csv       # 그룹 합 + strict / broad epithelial-activity proxy
 ├── spatial_top10_celltypes.png  # 평균 상위 10 type spot scatter
 ├── spatial_group_heatmaps.png   # 10 그룹 spatial sum panel
-├── spatial_immune_vs_cancer.png # 1×2 panel: immune total vs cancer-proxy
+├── spatial_immune_vs_epithelial.png # 1×3 panel: immune / strict proxy / broad proxy
 ├── moran_r_pairs.csv            # cell-pair (3,240) Moran's R, z, p
 └── moran_r_clustermap.png       # 80×80 hierarchical clustermap
 ```
@@ -400,7 +404,8 @@ def group_sum(g_name):
     return preds_df[members].sum(axis=1)
 
 immune = group_sum("Immune-lymphoid") + group_sum("Immune-myeloid")
-cancer_proxy = preds_df[groups.loc[groups["is_cancer_proxy"]==1, "cell_type"]].sum(axis=1)
+strict_proxy = preds_df[groups.loc[groups["is_strict_proxy"]==1, "cell_type"]].sum(axis=1)
+broad_proxy  = preds_df[groups.loc[groups["is_broad_proxy"]==1,  "cell_type"]].sum(axis=1)
 
 # 4) spatial 시각화 (matplotlib)
 import matplotlib.pyplot as plt
@@ -441,7 +446,7 @@ sl.close()
 |---|---|---|
 | spatial 분석가 | `predictions.csv`, `*_coords.h5`, `spots.csv`, `cell_type_groups.csv`, `analyze.py` | `inference/<slide>_v2/`, `inference/analysis/` |
 | proteomics 매칭 | 위 + `tissue_mask.png`, `spot_view.jpg` (좌표계 검증), `inference/analysis/README.md` (mpp/매칭 워크플로) | 같음 |
-| 빠른 시각 검토 | `spatial_top10_celltypes.png`, `spatial_group_heatmaps.png`, `spatial_immune_vs_cancer.png`, `moran_r_clustermap.png` | `inference/analysis/<slide>_v2/` |
+| 빠른 시각 검토 | `spatial_top10_celltypes.png`, `spatial_group_heatmaps.png`, `spatial_immune_vs_epithelial.png`, `moran_r_clustermap.png` | `inference/analysis/<slide>_v2/` |
 | 임상 review | `findings.md` + 위 PNG 4장 | 같은 폴더 |
 
 git push 시 `.pt` (수십 GB) 는 자동 차단, 나머지 (predictions / heatmap / Moran) 만 올라간다 (`.gitignore` 규칙 참고).
@@ -463,6 +468,6 @@ git push 시 `.pt` (수십 GB) 는 자동 차단, 나머지 (predictions / heatm
 
 본 파이프라인은 **lung-trained Hist2Cell 가중치** 를 기준으로 한다. breast / 다른 조직에 적용 시:
 - cell type 이름은 lung 분류 — 그룹 단위 / 공간 패턴 / 상대 비교만 신뢰
-- cancer-proxy = AT2+Basal+Suprabasal+Dividing_AT2+Dividing_Basal 합. 종양 직접 검출 아님
+- epithelial-activity proxy: strict (Basal+Dividing_AT2+Dividing_Basal, 3 종) vs broad (위 + AT2+Suprabasal, 5 종). 종양 직접 검출 아님 — `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md` 의 cross-tissue 신뢰도 표 필독
 - Visium 학습 분포 ~0.5 mpp vs Aperio 40× 0.26 mpp: 모델 시야 절반 수준 — 절대값보다 패턴
 - proteomics 등 다른 modality 와 **공간 일치 검증 후** 정량 결론 도출 권장

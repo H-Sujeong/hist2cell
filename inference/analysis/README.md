@@ -16,7 +16,8 @@
 inference/analysis/
 ├── README.md                                    ← 이 파일
 ├── analyze.py                                   재실행 스크립트 (Hist2Cell predictions 후속 분석)
-├── cell_type_groups.csv                         80 cell type → lineage group + cancer-proxy flag
+├── cell_type_groups.csv                         80 cell type → lineage group + is_strict_proxy / is_broad_proxy flags
+├── EPITHELIAL_PROXY_METHODOLOGY.md              strict / broad epithelial-activity proxy 의 선정 근거 + reference
 │
 ├── KBSMC_heatmap.png                            96 sample 환자 cohort bulk heatmap
 ├── KBSMC_heatmap_final.csv                      96 sample 의 column 순서
@@ -30,10 +31,10 @@ inference/analysis/
 ├── slide1_085_12_v2/                            환자 1번 통합 분석
 │   ├── findings.md                              통합 소견 (Hist2Cell + proteomics)
 │   ├── abundance_by_celltype.csv                80 type 별 mean/median/max/fraction-nonzero
-│   ├── abundance_by_group.csv                   group 별 합산 (cancer-proxy 별도)
+│   ├── abundance_by_group.csv                   group 별 합산 + strict / broad epithelial-activity proxy pseudo-group
 │   ├── spatial_top10_celltypes.png              top 10 type 의 spot scatter
 │   ├── spatial_group_heatmaps.png               10 group 의 spatial sum
-│   ├── spatial_immune_vs_cancer.png             immune total vs cancer-proxy
+│   ├── spatial_immune_vs_epithelial.png         3-panel: immune total / strict proxy / broad proxy
 │   ├── moran_r_pairs.csv                        80×80 cell-pair Moran's R
 │   ├── moran_r_clustermap.png                   Moran's R hierarchical clustermap
 │   ├── proteomics_top50_heatmaps.png            proteomics_분석.pdf 페이지 2 추출 (tumor + T-cell)
@@ -98,7 +99,7 @@ Age, Histology type, Tumor size, LVI, T/N stage, neoadjuvant/adjuvant chemo, rad
 
 본 두 슬라이드는 **96 sample 의 양 끝이 아니라 중간 위치**. 즉 cohort 안에서 risk score 극단치는 아닌 평범 ~ 중상위 sample. 이는 Hist2Cell 분석 결과와 일치 — 두 슬라이드 모두 typical breast tumor 의 패턴 (내부 heterogeneity 존재) 을 보였고 outlier 가 아니었다.
 
-→ 본 분석의 결론 (예: cancer-proxy 우세 영역, immune cluster 등) 은 cohort 안에서 일반화 가능한 패턴일 가능성이 높음.
+→ 본 분석의 결론 (예: epithelial-activity proxy hot-spot, immune cluster 등) 은 cohort 안에서 일반화 가능한 패턴일 가능성이 높음.
 
 ---
 
@@ -122,7 +123,7 @@ KBSMC cohort 에서 식별된 **EMT-high/IMMUNE-low vs EMT-low/IMMUNE-high** 두
 
 → KBSMC cohort 의 stratification axis 가 TNBC universal 한 신호임을 시사. 본 두 슬라이드의 분석은 이 axis 위에서 어디 위치하는지 → KBSMC heatmap §3.4 참고.
 
-본 Hist2Cell 분석 맥락: 우리의 **cancer-proxy** signal 은 TCGA 의 EMT axis 와 같은 종류의 신호 (proliferative epithelial), **immune total** 은 IMMUNE axis 와 같은 종류. 두 modality 가 같은 stratification 을 양쪽에서 잡고 있다.
+본 Hist2Cell 분석 맥락: 우리의 **epithelial-activity proxy** signal 은 TCGA 의 EMT axis 와 같은 종류의 신호 (proliferative/epithelial activity 의 spatial proxy — `EPITHELIAL_PROXY_METHODOLOGY.md` 참조), **immune total** 은 IMMUNE axis 와 같은 종류. 두 modality 가 같은 stratification 을 양쪽에서 잡고 있다.
 
 ---
 
@@ -172,7 +173,7 @@ KBSMC cohort 에서 식별된 **EMT-high/IMMUNE-low vs EMT-low/IMMUNE-high** 두
 
 이 cross-patient 공통 마커들은 **본 Hist2Cell 분석에서 직접 측정하지 않는 protein-level 신호**다. 하지만 다음 해석이 가능하다:
 
-- **DTNA high in tumor** ↔ Hist2Cell 의 **cancer-proxy hot-spot 영역** 과 spatial 매칭하면 공동 신호 검증 가능.
+- **DTNA high in tumor** ↔ Hist2Cell 의 **epithelial-activity proxy hot-spot 영역** (strict 또는 broad) 과 spatial 매칭하면 공동 신호 검증 가능.
 - **FABP4 low in high-risk tumor** ↔ Hist2Cell 의 immune-myeloid (macrophage 류) 와 inverse 관계 — macrophage 의 lipid handling 약화? 후속 검증 가치.
 - **IRF7 low in high-risk tumor** ↔ Hist2Cell 의 immune signal 이 약한 영역 과 일치 가능 — IFN response 가 약한 영역이 곧 immune-cold 영역.
 - **T-cell 영역의 모든 protein 이 high-risk 에서 감소** ↔ Hist2Cell 의 immune-lymphoid 자체는 검출되었으나 **functional T-cell 활성** 은 별개. proteomics 가 quality 정보 추가.
@@ -185,7 +186,7 @@ KBSMC cohort 에서 식별된 **EMT-high/IMMUNE-low vs EMT-low/IMMUNE-high** 두
 
 - **slide1_085_12** (환자 1): [`slide1_085_12_v2/findings.md`](slide1_085_12_v2/findings.md)
   - stromal-rich, 비교적 quiescent. Stromal-muscle 1위, low-risk tumor 가 high 의 2배.
-  - immune↔cancer-proxy 강한 양의 상관 (ρ=0.94). cancer-우세 spot 10.9%.
+  - immune ↔ broad epithelial-activity proxy 강한 양의 상관 (ρ=0.94), broad-dominant spot 10.9%. strict-dominant 는 0.35% (broad 의 핵심은 AT2/Suprabasal 의존).
   - proteomics: tumor 영역 high-risk 에 KIF20A/KIF22/INCENP (mitosis) 강함. T-cell 영역 분리는 약함.
 - **slide2_152_19** (환자 2): [`slide2_152_19_v2/findings.md`](slide2_152_19_v2/findings.md)
   - epithelial-rich, 활발한 immune+proliferation. Epithelial-airway 1위.
@@ -226,7 +227,7 @@ ROI 는 270 μm 패치 (= 약 1033 px @ 0.2615 mpp) 단위, Hist2Cell 은 105 μ
 
 ## 8. cell type grouping 요약 (`cell_type_groups.csv`)
 
-10 lineage group + 1 cancer-proxy flag (총 80 type, 5 type 이 cancer-proxy):
+10 lineage group + 2 epithelial-activity proxy flags (총 80 type, strict = 3 종 / broad = 5 종, `EPITHELIAL_PROXY_METHODOLOGY.md` 참조):
 
 | group | n | 멤버 |
 |---|---:|---|
@@ -241,7 +242,8 @@ ROI 는 270 μm 패치 (= 약 1033 px @ 0.2615 mpp) 단위, Hist2Cell 은 105 μ
 | Neural | 2 | Schwann_* |
 | Other-blood | 2 | Erythrocyte, Megakaryocyte |
 
-`is_cancer_proxy=1` (5 type): **AT2, Basal, Suprabasal, Dividing_AT2, Dividing_Basal**.
+- `is_strict_proxy=1` (3 type, 가장 방어 가능): **Basal, Dividing_AT2, Dividing_Basal**
+- `is_broad_proxy=1` (5 type, 위 + AT2/Suprabasal, cross-tissue 매핑 검증 가설): **AT2, Basal, Suprabasal, Dividing_AT2, Dividing_Basal**
 
 ---
 
@@ -282,7 +284,7 @@ python inference/analysis/analyze.py \
 ## 11. caveat 한 번 더 (모든 후속 해석 시 명심)
 
 1. **lung 학습 → breast 적용**: cell type 이름은 lung 기준. 그룹 단위로만 절대값 의미.
-2. **cancer-proxy ≠ cancer prediction**: 5 type 합산은 spatial reference signal.
+2. **epithelial-activity proxy ≠ tumor detection**: strict 3 종 / broad 5 종 합산은 lung-derived spatial proxy. breast 맥락 의미는 `EPITHELIAL_PROXY_METHODOLOGY.md` 의 strict / broad 신뢰도 표 참조.
 3. **mpp / tile_size mismatch**: Hist2Cell 105 μm 격자 vs ROI 270 μm. 매핑 시 평균 처리 필요.
 4. **Inkstain / label false positive (~5–10%)**: 슬라이드 가장자리 신호 무시.
 5. **두 modality 의 독립성**: tiatoolbox 가 본 Hist2Cell 보다 우선 학습된 KBSMC-튜닝 모델. 두 신호가 같은 방향이면 robust, 다르면 모델별 한계 검토.
