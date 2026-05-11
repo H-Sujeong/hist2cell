@@ -1,0 +1,48 @@
+tube_id,section,section_label,n_patches,n_tiles,n_spots
+a2,a,High-risk Tumor,3,12,19
+a3,a,High-risk Tumor,3,12,19
+a4,a,High-risk Tumor,4,16,27
+a5,a,High-risk Tumor,3,12,18
+a6,a,High-risk Tumor,4,16,27
+a7,a,High-risk Tumor,4,16,23
+a8,a,High-risk Tumor,4,16,25
+a9,a,High-risk Tumor,3,12,19
+a10,a,High-risk Tumor,3,12,14
+b1,b,Low-risk Tumor,3,12,24
+b2,b,Low-risk Tumor,3,12,21
+b3,b,Low-risk Tumor,4,16,27
+b4,b,Low-risk Tumor,5,20,31
+b5,b,Low-risk Tumor,4,16,25
+b6,b,Low-risk Tumor,4,16,25
+b7,b,Low-risk Tumor,4,16,27
+b8,b,Low-risk Tumor,4,16,30
+b9,b,Low-risk Tumor,3,12,21
+b10,b,Low-risk Tumor,4,16,30
+b11,b,Low-risk Tumor,4,16,25
+b12,b,Low-risk Tumor,4,16,22
+b13,b,Low-risk Tumor,5,20,31
+b14,b,Low-risk Tumor,4,16,20
+b15,b,Low-risk Tumor,4,16,25
+b16,b,Low-risk Tumor,4,16,25
+b17,b,Low-risk Tumor,4,16,25
+b18,b,Low-risk Tumor,4,16,25
+b19,b,Low-risk Tumor,4,16,28
+b20,b,Low-risk Tumor,5,20,26
+b21,b,Low-risk Tumor,5,20,34
+c1,c,High-risk T-cell,4,16,27
+c2,c,High-risk T-cell,2,8,12
+c3,c,High-risk T-cell,2,8,15
+c4,c,High-risk T-cell,2,8,15
+c5,c,High-risk T-cell,3,12,24
+d1,d,Low-risk T-cell,4,16,25
+d2,d,Low-risk T-cell,4,16,30
+d3,d,Low-risk T-cell,4,16,25
+d4,d,Low-risk T-cell,6,24,40
+d5,d,Low-risk T-cell,5,20,34
+d6,d,Low-risk T-cell,3,12,24
+d7,d,Low-risk T-cell,6,24,40
+d8,d,Low-risk T-cell,5,20,29
+d9,d,Low-risk T-cell,4,16,30
+t1,t,Middle-risk Tumor (ctrl),3,12,21
+t2,t,Middle-risk Tumor (ctrl),4,16,23
+t3,t,Middle-risk Tumor (ctrl),4,16,23

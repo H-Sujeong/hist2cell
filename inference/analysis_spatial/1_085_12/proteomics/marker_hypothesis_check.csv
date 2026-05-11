@@ -1,0 +1,8 @@
+gene,predicted_direction,observed_direction,matches_hypothesis,log2_fc,p,p_bh
+KIF20A,a>b,(not measured / filtered),False,,,
+KIF22,a>b,(not measured / filtered),False,,,
+INCENP,a>b,(not measured / filtered),False,,,
+MYH11,a>b,a>b,True,1.3244892510539437,0.0005486301138475052,0.02159375430936372
+TAGLN,a>b,a>b,True,1.5363131026861936,0.0015195199602995705,0.03452933359475416
+NCAM1,a>b,(not measured / filtered),False,,,
+APOBEC3C,a>b,(not measured / filtered),False,,,
