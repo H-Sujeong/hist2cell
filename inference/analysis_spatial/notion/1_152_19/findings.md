@@ -1,11 +1,10 @@
-> **Notion 업로드용 패키지 — slide2 (1_152_19) focused 2-claim proof** — 본 폴더의 `findings.md` (= 원본 `proofs/summary.md`) + PNG 3장이 같은 디렉토리. Notion 의 `File > Import > Markdown & CSV` 로 zip 째 업로드 → 이미지 자동 inline 첨부.
+> **Notion 업로드용 패키지 — slide2 (1_152_19) 통합** — `findings.md` + PNG 15 장이 같은 디렉토리. Notion 의 `File > Import > Markdown & CSV` 로 zip 째 업로드 → 자동 inline 첨부.
 >
-> ⚠️ 본 분석은 **lung-trained Hist2Cell** + **ROI proteomics gg_matrix** 의 cross-modality 검증의 *focused 2-claim* version (외부 reviewer 의 "분석이 너무 과하다" 피드백 반영). detail (cell_typing CSVs + proteomics CSVs) 은 repo `inference/analysis_spatial/1_152_19/` 의 형제 폴더 참고.
+> 본 패키지에는 **focused 2-claim summary** (Claim 1 = direction agreement, Claim 2 = per-ROI top cell types) **+ heavy figure gallery** (cell_typing 10 도 + proteomics 5 도 = 총 15 figure) 가 같이 들어있어 reviewer 가 *결론* 과 *근거 figure* 를 한 페이지에서 확인 가능.
 >
-> 방법론 / proxy 의미 reference:
-> - `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md` (strict / broad epithelial-activity proxy)
+> 캐논 source: `inference/analysis_spatial/1_152_19/` (cell_typing/ + proteomics/ + proofs/).
 >
-> slide1 의 동일 구조 패키지: `inference/analysis_spatial/notion/1_085_12/`
+> 방법론: `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md`, `inference/analysis/MORAN_R_METHODOLOGY.md` (§3.4 clustermap 읽는 법).
 
 # slide2 (1_152_19) — focused proof (2 claims)
 
@@ -174,3 +173,69 @@
 - 방법론: `../../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md`, `../../../analysis/MORAN_R_METHODOLOGY.md`
 - ROI PDF: `../../메테오바이오텍_1_152_19_ROI_추출_결과.pdf`
 - proteomics PDF: `../../proteomics_분석.pdf`
+
+---
+
+## Figure gallery (heavy version, 15 figures)
+
+본 figure 들은 cell_typing/ + proteomics/ 분석의 산출물. focused 2-claim 의 *직접 evidence* 는 summary 본문의 표 + section_group_composition / roi_top_celltypes_heatmap (위 본문). 아래 15 도는 *기존 방법론* 결과 (Wilcoxon / Moran / PCA / volcano / top markers heatmap).
+
+### ROI subgraph (48 tubes) over tissue mask
+
+![ROI subgraph (48 tubes) over tissue mask](section_subgraph.png)
+
+### Moran's R — 48-tube ROI subgraph
+
+![Moran's R — 48-tube ROI subgraph](moran_r_clustermap.png)
+
+### Moran's R — slide-wide Hist2Cell graph
+
+![Moran's R — slide-wide Hist2Cell graph](moran_r_clustermap_slide.png)
+
+### Spatial top-10 cell types — Hist2Cell spots
+
+![Spatial top-10 cell types — Hist2Cell spots](spatial_top10_celltypes.png)
+
+### Spatial group + proxy heatmaps
+
+![Spatial group + proxy heatmaps](spatial_group_heatmaps.png)
+
+### Immune vs strict / broad — spot scatter
+
+![Immune vs strict / broad — spot scatter](spatial_immune_vs_epithelial.png)
+
+### ROI-mean top-10 cell types per tube
+
+![ROI-mean top-10 cell types per tube](section_top10_celltypes.png)
+
+### Lineage groups + proxy per tube
+
+![Lineage groups + proxy per tube](section_group_heatmaps.png)
+
+### Immune vs strict / broad per tube
+
+![Immune vs strict / broad per tube](section_immune_vs_epithelial.png)
+
+### Section boxplots — 3 scores
+
+![Section boxplots — 3 scores](section_boxplots.png)
+
+### Per-section sample quality
+
+![Per-section sample quality](section_protein_summary.png)
+
+### Sample PCA
+
+![Sample PCA](pca_samples.png)
+
+### Volcano — Tumor e vs f
+
+![Volcano — Tumor e vs f](volcano_tumor_e_vs_f.png)
+
+### Volcano — T-cell g vs h
+
+![Volcano — T-cell g vs h](volcano_tcell_g_vs_h.png)
+
+### Top-20 markers heatmap (e vs f)
+
+![Top-20 markers heatmap (e vs f)](top_markers_heatmap.png)
