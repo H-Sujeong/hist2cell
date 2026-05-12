@@ -16,6 +16,20 @@
 > **⚠️ caveat**
 > Hist2Cell 는 healthy human lung 학습 모델이므로 cell type 라벨은 lung 분류. *공간 패턴 / 그룹 단위 상대 비교* 로만 해석. epithelial-activity proxy (strict / broad) 의 cross-tissue 해석은 `../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` 필독. Proteomics 는 raw intensity → log2 변환 후 Mann-Whitney U (BH-FDR), gene 별 detection rate ≥30% 양 그룹에서 필터. 본 문서의 결과는 *modality 간 spatial signal 의 cross-correlation* 의 정량 검증이지 single-cell ground truth 의 직접 측정이 아님.
 
+## 정의 — strict / broad epithelial-activity proxy + immune total
+
+본 분석은 **lung-trained Hist2Cell** (80 cell type 출력) 을 breast 슬라이드에 적용하므로, 종양-관련 spatial 신호를 추정하기 위해 lung label 중 *epithelial / progenitor / proliferative* 성격이 강한 type 을 **두 단계 score** 로 묶어 사용. 정의:
+
+| score | 포함 lung label (n) | 의미 | 신뢰도 |
+|---|---|---|---|
+| **strict epithelial-proliferative proxy** | `Basal` + `Dividing_AT2` + `Dividing_Basal` (3) | basal stem-cell (TP63+/KRT5+/KRT14+ — breast basal/myoepithelial 과 marker 공유) + 명시적 cell-cycle 표현형 (Ki67+ 등, tissue-agnostic proliferation marker) | **가장 방어 가능** — cross-tissue marker 공유 + cell-cycle 의 universality |
+| **broad epithelial-activity proxy** | 위 strict 3 종 + `AT2` + `Suprabasal` (5) | strict 에 lung-specific epithelial type 2개 추가 | **검증 가설 수준** — AT2 ↔ breast luminal progenitor 의 lineage 평행성 + Suprabasal 은 직접 대응 없는 transitional state (auxiliary) |
+| **immune total** | `Immune-lymphoid` (20) + `Immune-myeloid` (16) lineage 전체 cell type 의 합 (총 36) | T cell sub-types (CD4/CD8/Treg/NKT/gdT/NK/MAIT/ILC) + B cell sub-types (memory/naive/plasma_IgA/IgG/plasmablast) + macrophage / DC / monocyte / mast / etc. | 전체 immune compartment 의 spatial spatial proxy |
+
+→ 본 score 들은 **공간 spatial proxy** 이지 **breast tumor detector 가 아니다**. 라벨은 lung 분류이므로 그룹 합 / 상대 비교로만 해석. 전체 methodology (per-label 근거 + 13 reference): `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md`.
+
+---
+
 ## Section 라벨 (전역 — 두 modality 공통)
 
 | section prefix | 의미 | n (slide1) |
