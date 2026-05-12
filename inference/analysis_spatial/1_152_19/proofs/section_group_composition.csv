@@ -1,0 +1,6 @@
+section,section_label,n_ROIs,total_top_slots,pct_Epithelial-airway,pct_Epithelial-alveolar,pct_Immune-lymphoid,pct_Immune-myeloid,pct_Neural,pct_Other-blood,pct_Stromal-fibroblast,pct_Stromal-muscle,pct_Stromal-other,pct_Vascular
+e,High-risk Tumor,13,65,46.2,29.2,0.0,0.0,0.0,0.0,23.1,0.0,0.0,1.5
+f,Low-risk Tumor,15,75,46.7,22.7,0.0,0.0,0.0,0.0,24.0,4.0,0.0,2.7
+g,High-risk T-cell,7,35,22.9,22.9,0.0,0.0,0.0,0.0,11.4,37.1,0.0,5.7
+h,Low-risk T-cell,8,40,15.0,30.0,0.0,0.0,0.0,0.0,32.5,10.0,0.0,12.5
+v,Middle-risk Tumor (ctrl),5,25,36.0,24.0,0.0,0.0,0.0,0.0,36.0,0.0,0.0,4.0
