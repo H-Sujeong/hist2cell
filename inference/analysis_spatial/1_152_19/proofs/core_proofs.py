@@ -239,28 +239,49 @@ def plot_roi_top_heatmap(sig, groups, top_df, out_path):
     M = sig.set_index("tube_id").loc[top_df["tube_id"], union_top]
     means = M.mean(axis=0); stds = M.std(axis=0).replace(0, 1)
     Z = (M - means) / stds
-    fig, ax = plt.subplots(figsize=(0.35 * len(union_top) + 4,
-                                    0.28 * len(top_df) + 2))
-    im = ax.imshow(Z.values, aspect="auto", cmap="RdBu_r",
-                   vmin=-2.5, vmax=2.5)
-    ax.set_yticks(np.arange(len(top_df)))
-    ax.set_yticklabels(top_df["tube_id"], fontsize=7)
-    ax.set_xticks(np.arange(len(union_top)))
-    ax.set_xticklabels(union_top, rotation=90, fontsize=7)
+
+    from matplotlib.gridspec import GridSpec
+    fig_w = 0.32 * len(union_top) + 5.5
+    fig_h = 0.30 * len(top_df) + 2
+    fig = plt.figure(figsize=(fig_w, fig_h))
+    gs  = GridSpec(1, 3, width_ratios=[0.4, len(union_top), 0.3],
+                   wspace=0.05, figure=fig)
+    ax_strip = fig.add_subplot(gs[0, 0])
+    ax_heat  = fig.add_subplot(gs[0, 1])
+    ax_cbar  = fig.add_subplot(gs[0, 2])
+
+    im = ax_heat.imshow(Z.values, aspect="auto", cmap="RdBu_r",
+                        vmin=-2.5, vmax=2.5)
+    ax_heat.set_yticks([])
+    ax_heat.set_xticks(np.arange(len(union_top)))
+    ax_heat.set_xticklabels(union_top, rotation=90, fontsize=7)
+
     for i, s in enumerate(top_df["section"]):
-        ax.add_patch(plt.Rectangle((-1.5, i-0.5), 1, 1,
-                                    color=SECTION_COLOR[s], clip_on=False))
-    ax.set_xlim(-1.6, len(union_top) - 0.5)
-    ax.set_title("slide2 — per-ROI top cell-type heatmap "
-                 "(union of every ROI's top-5, z-score across ROIs)",
-                 fontsize=10)
-    plt.colorbar(im, ax=ax, fraction=0.02, label="z (across ROIs)")
+        ax_strip.add_patch(plt.Rectangle((0, i-0.5), 1, 1,
+                                          color=SECTION_COLOR[s]))
+    ax_strip.set_xlim(0, 1)
+    ax_strip.set_ylim(len(top_df) - 0.5, -0.5)
+    ax_strip.set_xticks([])
+    ax_strip.set_yticks(np.arange(len(top_df)))
+    ax_strip.set_yticklabels(top_df["tube_id"], fontsize=7)
+    ax_strip.set_ylabel("tube_id (section colour)", fontsize=8)
+    for sp in ("top", "right", "bottom"):
+        ax_strip.spines[sp].set_visible(False)
+
+    cbar = fig.colorbar(im, cax=ax_cbar)
+    cbar.set_label("z (across ROIs)", fontsize=8)
+    cbar.ax.tick_params(labelsize=7)
+
     handles = [plt.Line2D([0],[0], marker="s", color="w",
                            markerfacecolor=SECTION_COLOR[s], markersize=10,
                            label=SECTION_LABEL[s]) for s in SECTION_ORDER]
-    ax.legend(handles=handles, loc="upper right",
-              bbox_to_anchor=(1.25, 1.0), fontsize=8, frameon=False)
-    fig.tight_layout()
+    fig.legend(handles=handles, loc="upper left",
+               bbox_to_anchor=(0.84, 0.97), fontsize=8, frameon=True,
+               framealpha=0.9)
+
+    fig.suptitle("slide2 — Per-ROI top cell-type heatmap "
+                 "(union of every ROI's top-5, z-score across ROIs)",
+                 fontsize=11, y=0.995)
     fig.savefig(out_path, dpi=130, bbox_inches="tight")
     plt.close(fig)
 
