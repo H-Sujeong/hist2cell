@@ -33,8 +33,14 @@ SECTIONS = {
         "order": ["a", "b", "c", "d", "t"],
         "prefix": "abcdt",
         "pred_csv": "/home/sjhong/hist2cell/inference/slide1_085_12_v2/predictions.csv",
-        "axis1_pos_module": "epithelial / glandular  (KRT7/8/18, B_plasma_IgA, AT1/AT2, SMG_Duct)",
-        "axis1_neg_module": "immune / vascular / stromal  (PTPRC=CD45, CD74, COL1A1, Muscle_smooth)",
+        "axis_modules": {
+            1: ("epithelial / glandular  (KRT7/8/18, B_plasma_IgA, AT1/AT2, SMG_Duct)",
+                "immune / vascular / stromal  (PTPRC=CD45, CD74, COL1A1, Muscle_smooth)"),
+            2: ("ciliated alveolar epithelium / capillary  (Ciliated, AT1/2, Fibro_alveolar, HBA1/B, CNN1)",
+                "adventitial fibroblast / glandular secretory  (Fibro_adventitial, SMG_Serous, SDC1, PTX3, CALML5)"),
+            3: ("plasma B-cell / mucous-secretory glandular  (SMG_Duct, B_plasma_IgA, Goblet, S100P/A6, PTX3)",
+                "alveolar epithelium / basal stress keratin  (AT1/2, Muscle_smooth, KRT6A/B/72/75, TAGLN)"),
+        },
     },
     "1_152_19": {
         "labels": {"e": "High-risk Tumor", "f": "Low-risk Tumor",
@@ -45,18 +51,28 @@ SECTIONS = {
         "order": ["e", "f", "g", "h", "v"],
         "prefix": "efghv",
         "pred_csv": "/home/sjhong/hist2cell/inference/slide2_152_19_v2/predictions.csv",
-        "axis1_pos_module": "vascular / smooth muscle / blood  (Muscle_smooth_*, hemoglobins, collagen)",
-        "axis1_neg_module": "glandular / secretory / metabolic  (SMG_Serous/Duct, KRT7, PHGDH/PYCR1)",
+        "axis_modules": {
+            1: ("vascular / smooth muscle / blood  (Muscle_smooth_*, hemoglobins, collagen)",
+                "glandular / secretory / metabolic  (SMG_Serous/Duct, KRT7, PHGDH/PYCR1)"),
+            2: ("cornified squamous / plasma-B  (Chondrocyte, B_plasmablast, SPRR2G/1A, CEACAM1, BPIFA2)",
+                "alveolar / airway smooth muscle / immunoglobulin  (AT2, Muscle_airway, Ciliated, IGKV*, PRR4)"),
+            3: ("keratinized epithelium / mucinous-S100  (Chondrocyte, Ciliated, S100A7/A7A, MUCL1, CYP1B1)",
+                "stromal fibroblast / ECM collagen  (Fibro_alveolar, COL12A1, COL1A2, BGN, THBS1, TAGLN)"),
+        },
     },
 }
 
 
-def plot_dumbbell_axis1(common, sections, Hc, Pc, slide_key, scfg, out_path):
+def plot_dumbbell(common, sections, Hc, Pc, slide_key, scfg, out_path,
+                  axis_idx=0):
+    """Dumbbell plot for any canonical axis (axis_idx 0/1/2)."""
+    axis_num = axis_idx + 1
+    pos_mod, neg_mod = scfg["axis_modules"][axis_num]
     df = pd.DataFrame({
         "tube_id": common,
         "section": sections,
-        "h": Hc[:, 0],
-        "p": Pc[:, 0],
+        "h": Hc[:, axis_idx],
+        "p": Pc[:, axis_idx],
     })
     df["sec_order"] = df["section"].map(lambda s: scfg["order"].index(s))
     df = df.sort_values(["sec_order", "h"]).reset_index(drop=True)
@@ -78,22 +94,60 @@ def plot_dumbbell_axis1(common, sections, Hc, Pc, slide_key, scfg, out_path):
     ax.set_yticks(y)
     ax.set_yticklabels([f"{r.section} · {r.tube_id}" for _, r in df.iterrows()],
                        fontsize=6)
-    ax.set_xlabel("Canonical axis 1 score", fontsize=10)
-    ax.set_title(f"{slide_key} — per-ROI position on CCA axis 1\n"
+    ax.set_xlabel(f"Canonical axis {axis_num} score", fontsize=10)
+    ax.set_title(f"{slide_key} — per-ROI position on CCA axis {axis_num}\n"
                  f"○ = Hist2Cell score,  △ = Proteomics score "
                  f"(grey line = same ROI)", fontsize=11)
     handles = [plt.Rectangle((0, 0), 1, 1, color=scfg["colors"][s],
                               label=scfg["labels"][s]) for s in scfg["order"]]
     fig.tight_layout(rect=[0, 0.09, 1, 1])
-    fig.text(0.02, 0.070, f"axis 1 −  : {scfg['axis1_neg_module']}",
+    fig.text(0.02, 0.070, f"axis {axis_num} −  : {neg_mod}",
               fontsize=8, color="#1f77b4", ha="left", va="center")
-    fig.text(0.02, 0.050, f"axis 1 +  : {scfg['axis1_pos_module']}",
+    fig.text(0.02, 0.050, f"axis {axis_num} +  : {pos_mod}",
               fontsize=8, color="#d62728", ha="left", va="center")
     fig.legend(handles=handles, loc="lower left",
                 bbox_to_anchor=(0.02, 0.005),
                 ncol=len(scfg["order"]), fontsize=7.5, framealpha=0.9)
     fig.savefig(out_path, dpi=130, bbox_inches="tight")
     plt.close(fig)
+
+
+def plot_loadings(h_load, p_load, cell_cols, gene_index, axis_idx, slide_key,
+                  out_path, top_n=12):
+    h_axis = pd.Series(h_load[:, axis_idx], index=cell_cols)
+    p_axis = pd.Series(p_load[:, axis_idx], index=gene_index)
+    fig, axes = plt.subplots(2, 2, figsize=(14, 9))
+    for ax, (data, title, color) in zip(
+            axes.flat,
+            [(h_axis.nlargest(top_n),  f"Hist2Cell top + loaders (axis {axis_idx+1})", "#d62728"),
+             (h_axis.nsmallest(top_n), f"Hist2Cell top − loaders (axis {axis_idx+1})", "#1f77b4"),
+             (p_axis.nlargest(top_n),  f"Proteomics top + loaders (axis {axis_idx+1})", "#d62728"),
+             (p_axis.nsmallest(top_n), f"Proteomics top − loaders (axis {axis_idx+1})", "#1f77b4")]):
+        data = data.sort_values()
+        ax.barh(range(len(data)), data.values, color=color, alpha=0.75,
+                edgecolor="black", linewidth=0.3)
+        ax.set_yticks(range(len(data)))
+        ax.set_yticklabels(data.index, fontsize=8)
+        ax.set_xlabel("loading on canonical axis")
+        ax.set_title(title, fontsize=10)
+        ax.axvline(0, color="black", linewidth=0.4)
+    fig.suptitle(f"CCA loadings — {slide_key} canonical axis {axis_idx+1}", fontsize=12)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=130, bbox_inches="tight")
+    plt.close(fig)
+
+
+def print_top_loaders(h_load, p_load, cell_cols, gene_index, axis_idx, top_n=8):
+    h_axis = pd.Series(h_load[:, axis_idx], index=cell_cols)
+    p_axis = pd.Series(p_load[:, axis_idx], index=gene_index)
+    print(f"  axis {axis_idx+1} top + Hist2Cell:  "
+          f"{', '.join(f'{c}({v:+.2f})' for c, v in h_axis.nlargest(top_n).items())}")
+    print(f"  axis {axis_idx+1} top − Hist2Cell:  "
+          f"{', '.join(f'{c}({v:+.2f})' for c, v in h_axis.nsmallest(top_n).items())}")
+    print(f"  axis {axis_idx+1} top + Proteomics: "
+          f"{', '.join(f'{c}({v:+.3f})' for c, v in p_axis.nlargest(top_n).items())}")
+    print(f"  axis {axis_idx+1} top − Proteomics: "
+          f"{', '.join(f'{c}({v:+.3f})' for c, v in p_axis.nsmallest(top_n).items())}")
 
 
 def plot_section_means(common, sections, Hc, Pc, train_rs, slide_key, scfg, out_path):
@@ -167,20 +221,32 @@ def run_one(slide_key):
     })
     scores.to_csv(out_dir / "cca_scores_per_roi.csv", index=False)
 
-    plot_dumbbell_axis1(common, sections, Hc, Pc, slide_key, scfg,
-                         out_dir / "cca_dumbbell_axis1.png")
+    for axis_idx in range(3):
+        plot_dumbbell(common, sections, Hc, Pc, slide_key, scfg,
+                       out_dir / f"cca_dumbbell_axis{axis_idx+1}.png",
+                       axis_idx=axis_idx)
+        # only generate loadings png for axis 2/3 (axis 1 already exists)
+        if axis_idx in (1, 2):
+            plot_loadings(cca_out["h_loadings"], cca_out["p_loadings"],
+                          cell_cols, gene_index, axis_idx, slide_key,
+                          out_dir / f"cca_loadings_axis{axis_idx+1}.png")
     plot_section_means(common, sections, Hc, Pc, train_rs, slide_key, scfg,
                         out_dir / "cca_section_means.png")
 
-    # quick console summary: section means on axis 1
-    print(f"  axis 1 section means (H2C / Pro):")
-    for s in scfg["order"]:
-        mask = np.array(sections) == s
-        if mask.sum() == 0: continue
-        print(f"    {s} ({scfg['labels'][s]:<26}): "
-              f"H2C {Hc[mask, 0].mean():+.2f}  /  Pro {Pc[mask, 0].mean():+.2f}  "
-              f"(n={mask.sum()})")
-    print(f"  saved → cca_dumbbell_axis1.png, cca_section_means.png, "
+    # console: per-section means + top loaders for each axis (helps decide labels)
+    for axis_idx in range(3):
+        print(f"  --- axis {axis_idx+1}  (r = {train_rs[axis_idx]:+.3f}) ---")
+        print(f"  section means (H2C / Pro):")
+        for s in scfg["order"]:
+            mask = np.array(sections) == s
+            if mask.sum() == 0: continue
+            print(f"    {s} ({scfg['labels'][s]:<26}): "
+                  f"H2C {Hc[mask, axis_idx].mean():+.2f}  /  Pro {Pc[mask, axis_idx].mean():+.2f}  "
+                  f"(n={mask.sum()})")
+        print_top_loaders(cca_out["h_loadings"], cca_out["p_loadings"],
+                          cell_cols, gene_index, axis_idx)
+    print(f"  saved → cca_dumbbell_axis{{1,2,3}}.png, "
+          f"cca_loadings_axis{{2,3}}.png, cca_section_means.png, "
           f"cca_scores_per_roi.csv")
 
 
