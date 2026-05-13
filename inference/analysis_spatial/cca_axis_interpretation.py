@@ -137,6 +137,84 @@ def plot_loadings(h_load, p_load, cell_cols, gene_index, axis_idx, slide_key,
     plt.close(fig)
 
 
+def axis_intra_inter(scores_1d, sections, n_perm=1000, seed=0):
+    """One canonical axis at a time: are within-section |Δ score| pairs
+    smaller than between-section pairs? Returns intra/inter ratio +
+    permutation-null comparison."""
+    sec = np.array(sections)
+    n = len(sec)
+    s = np.asarray(scores_1d, dtype=float)
+    diff = np.abs(s[:, None] - s[None, :])
+    same = sec[:, None] == sec[None, :]
+    eye = np.eye(n, dtype=bool)
+    intra = diff[same & ~eye]
+    inter = diff[~same & ~eye]
+    intra_mean = float(intra.mean())
+    inter_mean = float(inter.mean())
+    ratio = float(intra_mean / inter_mean)
+    rng = np.random.default_rng(seed)
+    null_ratio = np.zeros(n_perm)
+    for k in range(n_perm):
+        perm = rng.permutation(sec)
+        same_p = perm[:, None] == perm[None, :]
+        same_p &= ~eye
+        intra_p = diff[same_p]
+        inter_p = diff[~same_p & ~eye]
+        null_ratio[k] = intra_p.mean() / inter_p.mean()
+    p_perm = float(np.mean(null_ratio <= ratio))
+    return {
+        "intra_mean": intra_mean,
+        "inter_mean": inter_mean,
+        "ratio": ratio,
+        "null_ratio_mean": float(null_ratio.mean()),
+        "null_ratio_95lo": float(np.percentile(null_ratio, 2.5)),
+        "null_ratio_95hi": float(np.percentile(null_ratio, 97.5)),
+        "p_perm": p_perm,
+    }
+
+
+def plot_axis_intra_inter(rows, slide_key, out_path):
+    """rows: list of dicts with axis, modality, ratio, null_ratio_mean,
+    null_ratio_95lo, null_ratio_95hi."""
+    df = pd.DataFrame(rows)
+    axes_uniq = sorted(df["axis"].unique())
+    mods = ["Hist2Cell", "Proteomics"]
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    width = 0.35
+    x_base = np.arange(len(axes_uniq))
+    for m_idx, mod in enumerate(mods):
+        sub = df[df["modality"] == mod].set_index("axis").loc[axes_uniq]
+        offset = (m_idx - 0.5) * width
+        bar = ax.bar(x_base + offset, sub["ratio"], width,
+                     color=("#d62728" if mod == "Hist2Cell" else "#1f77b4"),
+                     edgecolor="black", linewidth=0.5,
+                     alpha=0.85 if mod == "Hist2Cell" else 0.55,
+                     label=mod, hatch=("" if mod == "Hist2Cell" else "//"))
+        # null 95% CI as error bars going up
+        null_lo = sub["null_ratio_95lo"].values
+        null_hi = sub["null_ratio_95hi"].values
+        for xi, (lo, hi) in enumerate(zip(null_lo, null_hi)):
+            ax.plot([x_base[xi] + offset - width*0.4,
+                     x_base[xi] + offset + width*0.4],
+                    [lo, lo], color="gray", linewidth=1)
+            ax.plot([x_base[xi] + offset - width*0.4,
+                     x_base[xi] + offset + width*0.4],
+                    [hi, hi], color="gray", linewidth=1)
+            ax.plot([x_base[xi] + offset]*2, [lo, hi],
+                    color="gray", linewidth=1, alpha=0.7)
+    ax.axhline(1.0, color="black", linewidth=0.5, alpha=0.4)
+    ax.set_xticks(x_base)
+    ax.set_xticklabels([f"axis {a}" for a in axes_uniq], fontsize=10)
+    ax.set_ylabel("intra-section / inter-section  mean |Δ score|", fontsize=9)
+    ax.set_title(f"{slide_key} — per-axis intra/inter section separation\n"
+                 f"(bar = observed, grey bracket = permutation null 95% CI;  "
+                 f"smaller = section structure clearer)", fontsize=10)
+    ax.legend(loc="best", fontsize=8)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=130, bbox_inches="tight")
+    plt.close(fig)
+
+
 def print_top_loaders(h_load, p_load, cell_cols, gene_index, axis_idx, top_n=8):
     h_axis = pd.Series(h_load[:, axis_idx], index=cell_cols)
     p_axis = pd.Series(p_load[:, axis_idx], index=gene_index)
@@ -245,9 +323,27 @@ def run_one(slide_key):
                   f"(n={mask.sum()})")
         print_top_loaders(cca_out["h_loadings"], cca_out["p_loadings"],
                           cell_cols, gene_index, axis_idx)
+
+    print(f"  --- per-axis intra/inter check (1000-perm null) ---")
+    intra_rows = []
+    for axis_idx in range(3):
+        for mod_name, scores in [("Hist2Cell", Hc[:, axis_idx]),
+                                  ("Proteomics", Pc[:, axis_idx])]:
+            stats = axis_intra_inter(scores, sections, seed=42)
+            row = {"slide": slide_key, "axis": axis_idx+1, "modality": mod_name, **stats}
+            intra_rows.append(row)
+            print(f"    axis {axis_idx+1}  {mod_name:<10}  "
+                  f"intra={stats['intra_mean']:.2f}  inter={stats['inter_mean']:.2f}  "
+                  f"ratio={stats['ratio']:.3f}  "
+                  f"null 95%=[{stats['null_ratio_95lo']:.3f}, {stats['null_ratio_95hi']:.3f}]  "
+                  f"p={stats['p_perm']:.4f}")
+    pd.DataFrame(intra_rows).to_csv(out_dir / "cca_axis_intra_inter.csv", index=False)
+    plot_axis_intra_inter(intra_rows, slide_key,
+                           out_dir / "cca_axis_intra_inter.png")
+
     print(f"  saved → cca_dumbbell_axis{{1,2,3}}.png, "
           f"cca_loadings_axis{{2,3}}.png, cca_section_means.png, "
-          f"cca_scores_per_roi.csv")
+          f"cca_scores_per_roi.csv, cca_axis_intra_inter.{{csv,png}}")
 
 
 def main():
