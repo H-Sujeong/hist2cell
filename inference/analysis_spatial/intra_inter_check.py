@@ -104,12 +104,18 @@ def plot_distance_heatmap(D, sections, scfg, title, out_path):
     D_ord = D[order][:, order]
     sec_ord = sec_arr[order]
 
-    fig = plt.figure(figsize=(8.5, 7.5))
-    gs = fig.add_gridspec(2, 2, width_ratios=[0.025, 1],
-                          height_ratios=[0.025, 1], wspace=0.02, hspace=0.02)
-    ax_top = fig.add_subplot(gs[0, 1])
-    ax_left = fig.add_subplot(gs[1, 0])
-    ax_main = fig.add_subplot(gs[1, 1])
+    fig = plt.figure(figsize=(10, 9))
+    # Row 0 = legend strip, row 1 = top section colour strip, row 2 = main row
+    # Col 0 = left section strip, col 1 = main heatmap, col 2 = colorbar
+    gs = fig.add_gridspec(3, 3,
+                          width_ratios=[0.035, 1, 0.045],
+                          height_ratios=[0.08, 0.035, 1],
+                          wspace=0.04, hspace=0.04)
+    ax_legend = fig.add_subplot(gs[0, :])
+    ax_top    = fig.add_subplot(gs[1, 1])
+    ax_left   = fig.add_subplot(gs[2, 0])
+    ax_main   = fig.add_subplot(gs[2, 1])
+    ax_cb     = fig.add_subplot(gs[2, 2])
 
     im = ax_main.imshow(D_ord, cmap="magma_r", aspect="auto")
     ax_main.set_xticks([]); ax_main.set_yticks([])
@@ -124,15 +130,17 @@ def plot_distance_heatmap(D, sections, scfg, title, out_path):
                    vmin=0, vmax=len(scfg["order"])-1)
     ax_left.set_xticks([]); ax_left.set_yticks([])
 
-    cb = fig.colorbar(im, ax=ax_main, shrink=0.7, pad=0.02)
+    cb = fig.colorbar(im, cax=ax_cb)
     cb.set_label("Euclidean distance (PC10 space)", fontsize=9)
 
     handles = [plt.Rectangle((0, 0), 1, 1, color=scfg["colors"][s],
                               label=scfg["labels"][s]) for s in scfg["order"]]
-    ax_main.legend(handles=handles, loc="upper right", fontsize=7,
-                   framealpha=0.85)
+    ax_legend.axis("off")
+    ax_legend.legend(handles=handles, loc="center",
+                      ncol=len(scfg["order"]), fontsize=9, frameon=False,
+                      handletextpad=0.4, columnspacing=1.5)
 
-    fig.suptitle(title, fontsize=11)
+    fig.suptitle(title, fontsize=12, y=0.99)
     fig.savefig(out_path, dpi=130, bbox_inches="tight")
     plt.close(fig)
 
