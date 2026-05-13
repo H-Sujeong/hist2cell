@@ -1,0 +1,2 @@
+slide,n_rois,pearson_r,pearson_p_perm,spearman_r,spearman_p_perm,null_pearson_mean,null_pearson_95lo,null_pearson_95hi
+1_085_12,46,0.2040389575649771,0.005,0.20741435477790707,0.003,0.0005846809047787985,-0.1471886376691872,0.14799087181850662
