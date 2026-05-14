@@ -1,0 +1,17 @@
+slide,hypothesis,protein_marker,hist2cell_type,predicted_direction,observed_direction,matches_hypothesis,delta,p_bh,hyp_order
+slide1,KIF20A / KIF22 / INCENP (mitosis) ↔ Dividing_AT2,KIF20A / KIF22 / INCENP (mitosis),Dividing_AT2,a>b,a>b,True,0.0247684644742144,0.000478713580155,0
+slide2,KIF20A / KIF22 / INCENP (mitosis) ↔ Dividing_AT2,KIF20A / KIF22 / INCENP (mitosis),Dividing_AT2,e>f,e>f,True,0.012933493219316,0.0084720107578841,0
+slide1,KIF20A / KIF22 / INCENP (mitosis) ↔ Dividing_Basal,KIF20A / KIF22 / INCENP (mitosis),Dividing_Basal,a>b,a>b,True,0.0411886818825252,0.0152753311086981,1
+slide2,KIF20A / KIF22 / INCENP (mitosis) ↔ Dividing_Basal,KIF20A / KIF22 / INCENP (mitosis),Dividing_Basal,e>f,e>f,True,0.0651113808823701,0.0081517866142769,1
+slide1,KIF20A / KIF22 / INCENP (mitosis) ↔ Basal,KIF20A / KIF22 / INCENP (mitosis),Basal,a>b,a>b,True,0.0910372556675048,0.0043355139665082,2
+slide2,KIF20A / KIF22 / INCENP (mitosis) ↔ Basal,KIF20A / KIF22 / INCENP (mitosis),Basal,e>f,e>f,True,0.1282584324861184,0.0084720107578841,2
+slide1,MYH11 / TAGLN (smooth muscle) ↔ Muscle_smooth_syst_arterial,MYH11 / TAGLN (smooth muscle),Muscle_smooth_syst_arterial,a>b,a>b,True,0.1292206685221384,0.1809952849598303,3
+slide2,MYH11 / TAGLN (smooth muscle) ↔ Muscle_smooth_syst_arterial,MYH11 / TAGLN (smooth muscle),Muscle_smooth_syst_arterial,e>f,e<f,False,-0.1802167543998132,0.0231472020465681,3
+slide1,MYH11 / TAGLN (smooth muscle) ↔ Muscle_smooth_pulmonary,MYH11 / TAGLN (smooth muscle),Muscle_smooth_pulmonary,a>b,a>b,True,0.0589905744270672,0.1939583977760048,4
+slide2,MYH11 / TAGLN (smooth muscle) ↔ Muscle_smooth_pulmonary,MYH11 / TAGLN (smooth muscle),Muscle_smooth_pulmonary,e>f,e<f,False,-0.1004994579614737,0.0111774606560336,4
+slide1,MYH11 / TAGLN (smooth muscle) ↔ Muscle_airway,MYH11 / TAGLN (smooth muscle),Muscle_airway,a>b,a>b,True,0.0279590965263427,0.6427132979035011,5
+slide2,MYH11 / TAGLN (smooth muscle) ↔ Muscle_airway,MYH11 / TAGLN (smooth muscle),Muscle_airway,e>f,e<f,False,-0.199478531953616,0.0094368871962867,5
+slide1,(generic active Tumor) ↔ AT2,(generic active Tumor),AT2,a>b,a>b,True,1.277279320217314,0.000478713580155,6
+slide2,(generic active Tumor) ↔ AT2,(generic active Tumor),AT2,e>f,e>f,True,0.4051838920666621,0.021422371598976,6
+slide1,(generic active Tumor) ↔ Suprabasal,(generic active Tumor),Suprabasal,a>b,a>b,True,0.0838792926025769,0.0063362898100439,7
+slide2,(generic active Tumor) ↔ Suprabasal,(generic active Tumor),Suprabasal,e>f,e>f,True,0.1135302974627568,0.0084720107578841,7

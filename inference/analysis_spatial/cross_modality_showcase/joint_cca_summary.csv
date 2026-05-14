@@ -1,0 +1,2 @@
+n_ROI_joint,n_genes_common,canonical_r_axis1,canonical_r_axis2,canonical_r_axis3,null_mean_top,null_95_lo_top,null_95_hi_top,perm_p_top
+94,4168,0.8992836557550467,0.7224450497429884,0.6659299497707931,0.567135925363024,0.4800192384262041,0.6610135811062989,0.0
