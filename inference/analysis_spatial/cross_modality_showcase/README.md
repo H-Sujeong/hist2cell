@@ -227,6 +227,40 @@ ROI 분해도 ≈ 270 μm × 270 μm × 여러 patch 합쳐서. 단일 cell 단�
 
 ---
 
+## Risk gradient 와의 관계 — *큰 상관 없음*, 단 Tumor 안에서 axis 2 만 부분 정렬
+
+risk score 와의 정렬 관계를 *axis 1/2/3 × {Hist2Cell, Proteomics} × {all-ROI, Tumor-only}* 그리드로 검정한 결과를 종합하면:
+
+- **전반적으로 *큰 상관관계는 없다*.** all-ROI 합본에서 가장 강한 신호인 joint axis 2 도 *moderate* 수준. risk 변동의 대부분은 axis 들로 설명되지 않음. axis 1 ↔ risk 는 사실상 0.
+- **단 Tumor section 만 떼면 joint axis 2 ↔ risk 가 *깨끗한 양의 정렬*** 을 보인다. 두 modality (Hist2Cell·Proteomics) 모두 같은 방향, 두 슬라이드 단독으로도 같은 방향 (p<0.05). risk gradient 의 신호가 *axis 2 에 들어가 있고* + *Tumor 안에서만 명확하게 분리된다*.
+
+### 왜 *Tumor 만* 떼면 axis 2 가 risk 와 정렬되는가
+
+세 가지가 함께 작용한다:
+
+1. **axis 1 이 *compartment 차이* (Tumor ↔ T-cell) 의 분산을 흡수.** 전체 ROI 의 최대 분산은 Tumor 와 T-cell 의 조직 구성 차이 — joint CCA 는 그 변동을 axis 1 으로 학습. 그래서 axis 1 ↔ risk 는 거의 0: *risk 의 high/low 차이* 는 *compartment 차이* 보다 작은 *within-compartment* 변동이라 axis 1 으로 잡히지 않는다.
+
+2. **Tumor 만 떼면 compartment 차이가 사라지고, 남는 가장 큰 분산이 *within-Tumor 등급/risk gradient* 가 된다.** axis 2 는 데이터의 '두 번째로 큰' cross-modality coupling 을 학습하는데, Tumor subset 안에서는 그것이 *risk-driven 변동* 과 자연스럽게 정렬됨.
+
+3. **T-cell ROI 들의 risk 분포가 좁고 패턴도 다름.** 전체 ROI 의 axis 2 신호가 T-cell subset 의 다른 변동 때문에 흐려지는데, Tumor 만 보면 그 노이즈가 제거되어 신호가 *상대적으로* 깨끗해진다.
+
+### Tumor axis 2 의 *생물학적* 의미 (joint loadings 기반)
+
+`joint_cca_loadings.csv` 의 axis 2 ± 상위 loaders (양 슬라이드 *공통* 학습 결과):
+
+- **axis 2 + 방향** ≈ Ciliated · Fibro_alveolar · Secretory_Goblet · AT1/AT2 · Cap_a/g 등 *상피·폐포·모세혈관* 모듈 + CNN1 · HBA1/HBB · EPPK1 등 *active proliferative microenvironment* 단백. High-risk Tumor section (e/a) 가 이 쪽 극단.
+- **axis 2 − 방향** ≈ Fibro_adventitial · SMG_Serous · Fibro_myofibroblast · Endothelia_venous 등 *adventitial fibroblast · 분비선* 모듈 + 정상 대사·구조 단백. Low-risk Tumor (b/f) 가 이 쪽 극단.
+
+→ **본 데이터에서 axis 2 ↔ risk 정렬의 의미** = *Tumor 내부의 active proliferative 영역 vs normal stromal architecture 영역* 이라는 조직 모듈 축이 *위험도 등급* 과 같은 방향. risk score 가 *조직 구성의 active-normal* gradient 의 두 modality 종합 측정값으로 표상된다는 해석.
+
+### 한계 (정직)
+
+- joint axis 2 ↔ risk Tumor-only 합본 r ≈ +0.6 (*moderate*) — *strong* 으로 부풀리지 않음. risk 변동의 절반 이상은 axis 2 가 설명하지 못함.
+- slide2 단독 axis 2 신호가 slide1 보다 작고, slide2 axis 2 loadings 가 slide1 과 *부분만 일치* (alveolar epithelial + ciliated 는 공통, 면역 요소가 다름). 두 종양의 *High-risk 영역 미세환경 자체가 다르다*.
+- "axis 2 = risk axis" 는 *Tumor 내부 + 두 슬라이드 평균* 으로만 강한 주장. 일반화 (다른 환자) 는 추가 슬라이드 필요.
+
+---
+
 ## 본 분석의 *방법론적 진화* — 사용자 비판이 이끈 두 번의 전환
 
 | 시점 | 분석 | 발견된 약점 | 다음 단계 |
@@ -326,3 +360,4 @@ cd /home/sjhong/hist2cell/inference/analysis_spatial
 *2026-05-14 — 사용자 추가 비판 ("유의는 있는데 연관성 수치는 낮다") 직접 반영. 한 줄 결론을 "*양의 방향성* 까지" 로 톤다운, effect-size 분포 (median |r|=0.11, P99=0.48, 91.5% 가 |r|<0.3) 정량 추가.*
 *2026-05-14 — 사용자 후속 Q ("per-cell-type 별 강한 페어 어떤 게 있나") 의 직접 답. 80 cell type × top-5 양/음 페어 추출, 그림 + 표 + biological hub 해석 (smooth muscle/stromal · B_plasma_IgA mutual exclusion).*
 *2026-05-14 — 사용자 후속 Q ("음의 페어 = cell type 보이는 데서 gene 작다는 거?") 직접 답. ROI 단위 산점도 4 예 + 측정 단위 (single-cell 아님, ROI 평균) caveat 명시.*
+*2026-05-14 — 사용자 추가 요청 ("risk 와 연관성 이유와 해석을 약간 추가"). 흩어진 risk 결과를 *한 절*로 묶고 *Tumor 에서만 axis 2 가 정렬되는 이유* (compartment 분산이 axis 1 으로 빠짐 / Tumor 안의 잔여 분산 = within-Tumor risk gradient) + *axis 2 loadings 의 active vs normal architecture 해석* 추가.*
