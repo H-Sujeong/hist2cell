@@ -1,0 +1,5 @@
+Slide_directory = /mnt/fileserver/NAS2_pathology/Pathology_project/TCGA-LUAD/wsi/TCGA-05-4245-01A-01-BS1.41d3cf23-4e36-4e42-9e08-adfea139f37e.svs
+tile_size = 224
+overlap = 0
+min_tiles = 5
+is normalized = False
