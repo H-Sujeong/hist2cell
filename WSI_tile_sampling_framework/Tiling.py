@@ -127,7 +127,12 @@ class TileSampler:
         For each tile, determine which boundary (contour) it lies in based on its centroid.
         Only retain tiles in boundaries that contain at least self.min_tiles.
         """
-        mask_tile_size = round(self.tile_size)
+        # centroid is computed in thumbnail (downscaled) coords — x/y below are already
+        # divided by downscale_factor — so the tile half-extent must also be downscaled.
+        # Previously this was round(self.tile_size), offsetting the centroid by
+        # tile_size/2 (e.g. 112 px) instead of ~14 px, which pushed every test point
+        # toward the bottom-right and dropped a ~112 px band of edge tiles.
+        mask_tile_size = round(self.tile_size / self.downscale_factor)
         clusters = {}
         for tile in valid_tiles:
             x_idx, y_idx = tile
