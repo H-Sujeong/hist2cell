@@ -2,7 +2,7 @@
 
 > **이 문서가 다루는 것** — 외부 reviewer / 협업 동료 전달용 *최소 증명*. 본 폴더 (`proofs/`) 는 detail (`../cell_typing/`, `../proteomics/`, `../findings.md`) 의 *요약-증명*.
 >
-> ⚠️ **caveat** — Hist2Cell 가중치는 **lung-trained** (`humanlung_cell2location_leave_A50_out.pth`). 80 cell-type label 은 lung 분류. breast 슬라이드 적용 시 label 은 *morphology category proxy* 로 read, *cell-type ground truth* 아님. epithelial-activity proxy (strict / broad) 의 정의 및 lung→breast cross-tissue limitation 은 `../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` 필독.
+> ⚠️ **caveat** — Hist2Cell 가중치는 **lung-trained** (`humanlung_cell2location_leave_A50_out.pth`). 80 cell-type label 은 lung 분류. breast 슬라이드 적용 시 label 은 *morphology category proxy* 로 read, *cell-type ground truth* 아님. epithelial-activity proxy (strict / broad) 의 정의 및 lung→breast cross-tissue limitation 은 `../../EPITHELIAL_PROXY_METHODOLOGY.md` 필독.
 
 ---
 
@@ -16,7 +16,7 @@
 | **broad epithelial-activity proxy** | 위 strict 3 종 + `AT2` + `Suprabasal` (5) | strict 에 lung-specific epithelial type 2개 추가 | **검증 가설 수준** — AT2 ↔ breast luminal progenitor 의 lineage 평행성 + Suprabasal 은 직접 대응 없는 transitional state (auxiliary) |
 | **immune total** | `Immune-lymphoid` (20) + `Immune-myeloid` (16) lineage 전체 cell type 의 합 (총 36) | T cell sub-types (CD4/CD8/Treg/NKT/gdT/NK/MAIT/ILC) + B cell sub-types (memory/naive/plasma_IgA/IgG/plasmablast) + macrophage / DC / monocyte / mast / etc. | 전체 immune compartment 의 spatial spatial proxy |
 
-→ 본 score 들은 **공간 spatial proxy** 이지 **breast tumor detector 가 아니다**. 라벨은 lung 분류이므로 그룹 합 / 상대 비교로만 해석. 전체 methodology (per-label 근거 + 13 reference): `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md`.
+→ 본 score 들은 **공간 spatial proxy** 이지 **breast tumor detector 가 아니다**. 라벨은 lung 분류이므로 그룹 합 / 상대 비교로만 해석. 전체 methodology (per-label 근거 + 13 reference): `inference/analysis_spatial/EPITHELIAL_PROXY_METHODOLOGY.md`.
 
 ---
 
@@ -146,4 +146,4 @@
 - `../findings.md` — detail (15 figure 의 해석 + Wilcoxon / Moran 등 full)
 - `../cell_typing/` — Hist2Cell ROI-level 분석 산출물 (section_stats, per_celltype_wilcoxon, marker_hypotheses 등)
 - `../proteomics/` — gg_matrix differential analysis (volcano, top genes, marker check)
-- `../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` — lung→breast proxy 한계 reference
+- `../../EPITHELIAL_PROXY_METHODOLOGY.md` — lung→breast proxy 한계 reference

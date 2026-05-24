@@ -4,10 +4,9 @@ Two PNG families:
   section_*.png — ROI-level plots (47 tube nodes coloured by descriptive
                   section label; uses the cropped tissue mask as backdrop
                   so each tube sits in its slide-anatomical context)
-  spatial_*.png — Hist2Cell spot-level heatmaps in the style of
-                  analysis_filtered/ (dense scatter coloured by abundance,
-                  filtered to the cropped tissue-mask X range so the plot
-                  fits the slide silhouette)
+  spatial_*.png — Hist2Cell spot-level dense scatter heatmaps coloured by
+                  abundance, filtered to the cropped tissue-mask X range
+                  so the plot fits the slide silhouette
 
 Section labels (per user spec — descriptive, not prefix):
   a → High-risk Tumor
@@ -22,7 +21,7 @@ Inputs
   ../meteo_1_085_12_coords_cropped.npy filtered npy (X-range applied)
   ../tissue_mask.png                   thumbnail tissue mask (full slide)
   ../tissue_mask_cropped.png           same mask zero-ed outside X∈[30000, 175000]
-  ../../analysis/cell_type_groups.csv  cell type → group + strict/broad flags
+  ../../cell_type_groups.csv          cell type → group + strict/broad flags
   /home/sjhong/hist2cell/inference/slide1_085_12_v2/
        predictions.csv                  35,821 spots × 80 cell types
        slide1_085_12_coords.h5          WSI dims + tile metadata
@@ -71,7 +70,7 @@ HERE      = Path(__file__).resolve().parent
 PARENT    = HERE.parent
 PRED_CSV  = Path("/home/sjhong/hist2cell/inference/slide1_085_12_v2/predictions.csv")
 COORDS_H5 = Path("/home/sjhong/hist2cell/inference/slide1_085_12_v2/slide1_085_12_coords.h5")
-GROUPS_CSV = Path("/home/sjhong/hist2cell/inference/analysis/cell_type_groups.csv")
+GROUPS_CSV = Path("/home/sjhong/hist2cell/inference/analysis_spatial/cell_type_groups.csv")
 
 ROI_PKL   = PARENT / "1_085_12_ROI_groups.pkl"
 NPY_FULL  = PARENT / "meteo_1_085_12_coords.npy"

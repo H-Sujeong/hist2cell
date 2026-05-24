@@ -2,7 +2,7 @@
 
 > **이 문서의 위치**
 >
-> `inference/analysis/analyze.py` 의 `build_knn_weight_matrix()` + `moran_r_pairs()` 가 슬라이드별 산출물 `moran_r_pairs.csv` (대각 포함 3,240 row) + `moran_r_clustermap.png` (80×80 hierarchical clustermap) 을 만드는 절차의 수학적 / 생물학적 근거. `findings.md` §3.4 의 해석이 본 문서를 기반으로 한다.
+> `inference/analysis_spatial/analyze.py` 의 `build_knn_weight_matrix()` + `moran_r_pairs()` 가 슬라이드별 산출물 `moran_r_pairs.csv` (대각 포함 3,240 row) + `moran_r_clustermap.png` (80×80 hierarchical clustermap) 을 만드는 절차의 수학적 / 생물학적 근거. `findings.md` §3.4 의 해석이 본 문서를 기반으로 한다.
 
 ---
 
@@ -212,7 +212,7 @@ R(i, j) 는 **"cell type i 의 hot-spot 과 cell type j 의 hot-spot 이 공간�
 
 #### 3.4.4 구체 예 — slide2 의 clustermap 읽기
 
-`inference/analysis/slide2_152_19_v2/moran_r_clustermap.png` 에서:
+`inference/analysis_spatial/slide2_152_19_v2/moran_r_clustermap.png` 에서:
 
 1. **`Secretory_Goblet` 라벨 찾기** (왼쪽 row 또는 위 column)
 2. **그 row 를 따라 가로로 스캔** — Goblet 의 모든 column 과의 R 값 보기
@@ -326,16 +326,15 @@ ROI 좌표 (`.tmpprotocol`) 도착 시:
 
 [5] **Pebesma E**. *Multivariable geostatistics in S: the gstat package*. **Computers & Geosciences** 2004;30:683–691. — sparse W 기반 large-scale Moran 구현의 reference.
 
-[6] 본 분석 코드: `inference/analysis/analyze.py` 의 `build_knn_weight_matrix()` + `moran_r_pairs()`.
+[6] 본 분석 코드: `inference/analysis_spatial/analyze.py` 의 `build_knn_weight_matrix()` + `moran_r_pairs()`.
 
 ---
 
 ## 9. 본 문서와 연결된 파일
 
-- 분석 코드 / W 구성: `inference/analysis/analyze.py:build_knn_weight_matrix()`
-- R 계산: `inference/analysis/analyze.py:moran_r_pairs()`
-- 산출 CSV / PNG: `inference/analysis/{slide1,slide2}_v2/moran_r_pairs.csv` + `moran_r_clustermap.png`
-- 필터 버전: `inference/analysis_filtered/{slide1,slide2}_v2/moran_r_pairs.csv` + `moran_r_clustermap.png`
-- 슬라이드별 해석: `findings.md` §3.4 (slide1, slide2 / 원본, 필터 4 파일)
+- 분석 코드 / W 구성: `inference/analysis_spatial/analyze.py:build_knn_weight_matrix()`
+- R 계산: `inference/analysis_spatial/analyze.py:moran_r_pairs()`
+- 산출 CSV / PNG: `inference/analysis_spatial/1_{085_12,152_19}/cell_typing/moran_within_roi.csv` + `moran_r_clustermap.png`
+- 슬라이드별 해석: `1_{085_12,152_19}/findings.md` §3.4
 - 본 분석의 lung-→breast proxy 한계 (R 해석의 caveat): `EPITHELIAL_PROXY_METHODOLOGY.md`
 - 격자 + kNN guideline: `report/04_WSI에서_분석까지_쿡북.md` §4.4

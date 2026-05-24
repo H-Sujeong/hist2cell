@@ -1,8 +1,8 @@
 > **Notion 업로드용 패키지** — 이 폴더의 `findings.md` 와 PNG 15장이 같은 디렉토리에 함께 있습니다. Notion 의 `File > Import > Markdown & CSV` 로 zip 째 업로드하면 이미지가 자동 inline 첨부됩니다. 원본 (subfolder 분리된 cell_typing/ + proteomics/ + 원본 CSV) 은 `inference/analysis_spatial/1_085_12/findings.md` 참고.
 >
 > ⚠️ 본 분석은 **lung-trained Hist2Cell** 모델 결과 + **ROI proteomics gg_matrix** 의 cross-modality 정량 검증. 방법론 / proxy 의미:
-> - `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md` (strict / broad epithelial-activity proxy)
-> - `inference/analysis/MORAN_R_METHODOLOGY.md` (80×80 Moran R clustermap 읽는 법, §3.4)
+> - `inference/analysis_spatial/EPITHELIAL_PROXY_METHODOLOGY.md` (strict / broad epithelial-activity proxy)
+> - `inference/analysis_spatial/MORAN_R_METHODOLOGY.md` (80×80 Moran R clustermap 읽는 법, §3.4)
 
 # slide1 (1_085_12) — 통합 ROI 분석 소견 (Hist2Cell × Proteomics)
 
@@ -14,7 +14,7 @@
 > 모든 시각화는 cropped tissue mask (`../tissue_mask_cropped.png`) 위에 그려져 슬라이드 anatomy 와 ROI 위치가 시각적으로 연결됨.
 >
 > **⚠️ caveat**
-> Hist2Cell 는 healthy human lung 학습 모델이므로 cell type 라벨은 lung 분류. *공간 패턴 / 그룹 단위 상대 비교* 로만 해석. epithelial-activity proxy (strict / broad) 의 cross-tissue 해석은 `../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` 필독. Proteomics 는 raw intensity → log2 변환 후 Mann-Whitney U (BH-FDR), gene 별 detection rate ≥30% 양 그룹에서 필터. 본 문서의 결과는 *modality 간 spatial signal 의 cross-correlation* 의 정량 검증이지 single-cell ground truth 의 직접 측정이 아님.
+> Hist2Cell 는 healthy human lung 학습 모델이므로 cell type 라벨은 lung 분류. *공간 패턴 / 그룹 단위 상대 비교* 로만 해석. epithelial-activity proxy (strict / broad) 의 cross-tissue 해석은 `../EPITHELIAL_PROXY_METHODOLOGY.md` 필독. Proteomics 는 raw intensity → log2 변환 후 Mann-Whitney U (BH-FDR), gene 별 detection rate ≥30% 양 그룹에서 필터. 본 문서의 결과는 *modality 간 spatial signal 의 cross-correlation* 의 정량 검증이지 single-cell ground truth 의 직접 측정이 아님.
 
 ## 정의 — strict / broad epithelial-activity proxy + immune total
 
@@ -26,7 +26,7 @@
 | **broad epithelial-activity proxy** | 위 strict 3 종 + `AT2` + `Suprabasal` (5) | strict 에 lung-specific epithelial type 2개 추가 | **검증 가설 수준** — AT2 ↔ breast luminal progenitor 의 lineage 평행성 + Suprabasal 은 직접 대응 없는 transitional state (auxiliary) |
 | **immune total** | `Immune-lymphoid` (20) + `Immune-myeloid` (16) lineage 전체 cell type 의 합 (총 36) | T cell sub-types (CD4/CD8/Treg/NKT/gdT/NK/MAIT/ILC) + B cell sub-types (memory/naive/plasma_IgA/IgG/plasmablast) + macrophage / DC / monocyte / mast / etc. | 전체 immune compartment 의 spatial spatial proxy |
 
-→ 본 score 들은 **공간 spatial proxy** 이지 **breast tumor detector 가 아니다**. 라벨은 lung 분류이므로 그룹 합 / 상대 비교로만 해석. 전체 methodology (per-label 근거 + 13 reference): `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md`.
+→ 본 score 들은 **공간 spatial proxy** 이지 **breast tumor detector 가 아니다**. 라벨은 lung 분류이므로 그룹 합 / 상대 비교로만 해석. 전체 methodology (per-label 근거 + 13 reference): `inference/analysis_spatial/EPITHELIAL_PROXY_METHODOLOGY.md`.
 
 ---
 
@@ -52,7 +52,7 @@
 | Tile candidate set | `./meteo_1_085_12_coords.npy` | 5,227 × (512×512) tile top-lefts; ROI 의 superset, tissue 영역만 |
 | Cropped npy (X-range filter) | `./meteo_1_085_12_coords_cropped.npy` | X ∈ [30000, 175000] 필터 적용 (slide1 의 npy 는 이미 이 범위 내 — 5,227 동일) |
 | Tissue mask | `./tissue_mask.png`, `./tissue_mask_cropped.png` | thumbnail 4000×1606, level-0 의 1/55 scale |
-| Cell type group | `../analysis/cell_type_groups.csv` | strict 3종 + broad 5종 + 10 lineage |
+| Cell type group | `../cell_type_groups.csv` | strict 3종 + broad 5종 + 10 lineage |
 | Proteomics gg-matrix | `../report.gg_matrix (1).tsv` | 7,807 genes × 95 samples (slide1 46 + slide2 48) |
 | ROI 추출 절차 PDF | `../메테오바이오텍_1-085_12_ROI_추출_결과.pdf` | 53 페이지, ROI 별 thumbnail + Astromapper 매핑 |
 | Proteomics 사전 분석 PDF | `../proteomics_분석.pdf` | 다른 연구자가 gg_matrix 로 만든 결과 |
@@ -161,7 +161,7 @@ ROI patch 평균 spot 수 = 25.0. Proteomics 의 'a5' 가 누락 — cell_typing
 - **중앙의 큰 빨간 block** = immune-myeloid + immune-lymphoid 의 공동 community — slide 전반의 immune cluster.
 - **stromal-muscle / Fibro 가 우측에 별도 block** — 정상 stromal architecture.
 
-**의의** — ROI 영역은 슬라이드 전체의 일부 (3.3%). 본 slide-wide clustermap 은 *ROI 외부* 까지 포함한 backdrop community 구조를 제공. ROI subgraph 의 community (alveolar-fibroblastic-capillary) 가 slide-wide 에선 어떻게 위치하는지 확인 가능. 자세한 읽는 법: `../analysis/MORAN_R_METHODOLOGY.md` §3.4.
+**의의** — ROI 영역은 슬라이드 전체의 일부 (3.3%). 본 slide-wide clustermap 은 *ROI 외부* 까지 포함한 backdrop community 구조를 제공. ROI subgraph 의 community (alveolar-fibroblastic-capillary) 가 slide-wide 에선 어떻게 위치하는지 확인 가능. 자세한 읽는 법: `../MORAN_R_METHODOLOGY.md` §3.4.
 
 ### 3.5 Spatial heatmaps over tissue mask
 
@@ -461,9 +461,6 @@ ROI patch 평균 spot 수 = 25.0. Proteomics 의 'a5' 가 누락 — cell_typing
 
 ## 9. 관련 문서
 
-- **방법론 근거**: `../analysis/EPITHELIAL_PROXY_METHODOLOGY.md` (strict / broad proxy)
-- **Moran R 방법론**: `../analysis/MORAN_R_METHODOLOGY.md` (공간 가중치 + bivariate R + clustermap 읽는 법 §3.4)
-- **slide-wide 분석 (ROI 좌표 없이)**: `../analysis/slide1_085_12_v2/findings.md`
-- **largest-blob filter 분석**: `../analysis_filtered/slide1_085_12_v2/findings.md`
-- **외부 reviewer 대응 권장사항**: `../analysis_filtered/notion/REPORT_REVIEW.md`
+- **방법론 근거**: `../EPITHELIAL_PROXY_METHODOLOGY.md` (strict / broad proxy)
+- **Moran R 방법론**: `../MORAN_R_METHODOLOGY.md` (공간 가중치 + bivariate R + clustermap 읽는 법 §3.4)
 - **ROI PDF / proteomics 분석 PDF**: `../메테오바이오텍_1-085_12_ROI_추출_결과.pdf`, `../proteomics_분석.pdf`

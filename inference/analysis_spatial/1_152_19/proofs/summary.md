@@ -2,7 +2,7 @@
 
 > **이 문서의 범위** — 외부 reviewer 전달용 *최소 증명*. slide1 (`../../1_085_12/proofs/summary.md`) 와 동일한 2-claim 구조. detail (cell_typing CSVs + proteomics CSVs) 은 형제 폴더 참고.
 >
-> ⚠️ **caveat** — Hist2Cell 가중치는 lung-trained (`humanlung_cell2location_leave_A50_out.pth`). 본 결과는 *lung-derived spatial proxy* 의 cross-modality 검증. label 의 절대 의미는 *cell-type ground truth 아님*. methodology: `../../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md`.
+> ⚠️ **caveat** — Hist2Cell 가중치는 lung-trained (`humanlung_cell2location_leave_A50_out.pth`). 본 결과는 *lung-derived spatial proxy* 의 cross-modality 검증. label 의 절대 의미는 *cell-type ground truth 아님*. methodology: `../../EPITHELIAL_PROXY_METHODOLOGY.md`.
 
 ## 정의 — strict / broad epithelial-activity proxy + immune total
 
@@ -14,7 +14,7 @@
 | **broad epithelial-activity proxy** | 위 strict 3 종 + `AT2` + `Suprabasal` (5) | strict 에 lung-specific epithelial type 2개 추가 | **검증 가설 수준** — AT2 ↔ breast luminal progenitor 의 lineage 평행성 + Suprabasal 은 직접 대응 없는 transitional state (auxiliary) |
 | **immune total** | `Immune-lymphoid` (20) + `Immune-myeloid` (16) lineage 전체 cell type 의 합 (총 36) | T cell sub-types (CD4/CD8/Treg/NKT/gdT/NK/MAIT/ILC) + B cell sub-types (memory/naive/plasma_IgA/IgG/plasmablast) + macrophage / DC / monocyte / mast / etc. | 전체 immune compartment 의 spatial spatial proxy |
 
-→ 본 score 들은 **공간 spatial proxy** 이지 **breast tumor detector 가 아니다**. 라벨은 lung 분류이므로 그룹 합 / 상대 비교로만 해석. 전체 methodology (per-label 근거 + 13 reference): `inference/analysis/EPITHELIAL_PROXY_METHODOLOGY.md`.
+→ 본 score 들은 **공간 spatial proxy** 이지 **breast tumor detector 가 아니다**. 라벨은 lung 분류이므로 그룹 합 / 상대 비교로만 해석. 전체 methodology (per-label 근거 + 13 reference): `inference/analysis_spatial/EPITHELIAL_PROXY_METHODOLOGY.md`.
 
 ---
 
@@ -176,6 +176,6 @@
 ## 관련 문서
 
 - slide1 (1_085_12) summary: `../../1_085_12/proofs/summary.md`
-- 방법론: `../../../analysis/EPITHELIAL_PROXY_METHODOLOGY.md`, `../../../analysis/MORAN_R_METHODOLOGY.md`
+- 방법론: `../../EPITHELIAL_PROXY_METHODOLOGY.md`, `../../MORAN_R_METHODOLOGY.md`
 - ROI PDF: `../../메테오바이오텍_1_152_19_ROI_추출_결과.pdf`
 - proteomics PDF: `../../proteomics_분석.pdf`

@@ -31,7 +31,7 @@ from scipy.stats import pearsonr, spearmanr
 HERE  = Path(__file__).resolve().parent
 ROI   = HERE.parent / "cell_typing" / "roi_signatures.csv"
 GG    = Path("/home/sjhong/hist2cell/inference/analysis_spatial/report.gg_matrix (1).tsv")
-GRP   = Path("/home/sjhong/hist2cell/inference/analysis/cell_type_groups.csv")
+GRP   = Path("/home/sjhong/hist2cell/inference/analysis_spatial/cell_type_groups.csv")
 
 SECTION_LABEL = {
     "e": "High-risk Tumor", "f": "Low-risk Tumor",

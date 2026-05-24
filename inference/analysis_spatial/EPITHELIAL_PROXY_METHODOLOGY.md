@@ -104,7 +104,7 @@ mammary luminal progenitor 연구 [7][9] 는 본 score 가 *대응한다* 는 �
 2. **모델 feature space mismatch** — lung 조직으로 학습한 backbone (ResNet18) 의 representation 이 breast H&E 와 어떤 차이를 보이는지는 정량 검증 없음. *상대 spatial pattern* 으로만 해석.
 3. **H&E 기반 모델 한계** — `Dividing_*` 라벨이라 해도 실제 Ki67/MKI67 abundance 의 직접 측정이 아니라 **morphology-similar signal**. 정량 검증에는 IHC / multiplex IF 필요.
 4. **mpp / tile_size mismatch** — Visium 20× (~0.5 μm/px) 학습 vs Aperio 40× (0.2615 μm/px) 적용. 모델 시야가 학습 분포의 절반 — 절대값 비교 금지.
-5. **분리된 tissue blob 의 영향** — `inference/analysis_filtered/COMPARISON.md` 에서 보았듯, slide2 의 경우 epithelial-activity 우세 spot 중 상당 부분이 가장 큰 덩어리 바깥에 위치. abundance 의 절대값 / spatial 분포 해석 시 슬라이드 내 다중 compartment 가능성 명심.
+5. **분리된 tissue blob 의 영향** — slide 안에 *여러 개의 분리된 조직 덩어리* 가 있어 (largest-blob 이 60-66%), epithelial-activity 우세 spot 중 일부가 가장 큰 덩어리 바깥에 위치한 경우가 있었다. abundance 의 절대값 / spatial 분포 해석 시 슬라이드 내 다중 compartment 가능성 명심.
 6. **5 외 다른 후보 type 제외 사유**: lung 80 type 중 `Macro_dividing` (면역세포), `B_plasmablast` (면역세포), `Deuterosomal` (ciliated-progenitor intermediate) 는 epithelial cancer compartment 의 spatial proxy 로 부적합하여 제외. Suprabasal 는 transitional epithelial 이라 broad 에만 포함.
 
 ---
@@ -167,12 +167,9 @@ mammary luminal progenitor 연구 [7][9] 는 본 score 가 *대응한다* 는 �
 
 ## 8. 본 문서와 연결된 파일
 
-- `inference/analysis/cell_type_groups.csv` — `is_strict_proxy` / `is_broad_proxy` 컬럼
-- `inference/analysis/analyze.py` — `per_group_stats()` 의 strict / broad pseudo-group, `plot_immune_vs_epithelial()` (3-panel: immune / strict / broad)
-- `inference/analysis/slide{1,2}_*_v2/findings.md` — 각 슬라이드별 두 score 의 해석
-- `inference/analysis_filtered/COMPARISON.md` — filter 적용 시 두 score 비율 변화
-- `inference/analysis_filtered/slide{1,2}_*_v2/findings.md` — filter 후 두 score 의 재해석
-- `inference/analysis/README.md` — 분석 디렉토리 전체 caveat
+- `inference/analysis_spatial/cell_type_groups.csv` — `is_strict_proxy` / `is_broad_proxy` 컬럼
+- `inference/analysis_spatial/analyze.py` — `per_group_stats()` 의 strict / broad pseudo-group, `plot_immune_vs_epithelial()` (3-panel: immune / strict / broad)
+- `inference/analysis_spatial/1_{085_12,152_19}/findings.md` — 각 슬라이드별 두 score 의 해석
 - `report/04_WSI에서_분석까지_쿡북.md` — pipeline cookbook 의 score 언급
 - `/home/sjhong/CUCA/HER2ST_VS_LUNG_MAPPING.md` — her2st 39 type 도착 후 직접 mammary epithelial 측정으로 전환하는 길
 

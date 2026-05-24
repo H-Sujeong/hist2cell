@@ -58,7 +58,7 @@ N_CCA_COMP    = 3             # canonical components to extract
 N_PERM        = 1000          # permutation replicates
 RANDOM_SEED   = 42
 
-GROUPS_CSV = Path("/home/sjhong/hist2cell/inference/analysis/cell_type_groups.csv")
+GROUPS_CSV = Path("/home/sjhong/hist2cell/inference/analysis_spatial/cell_type_groups.csv")
 GG_MATRIX  = Path("/home/sjhong/hist2cell/inference/analysis_spatial/report.gg_matrix (1).tsv")
 
 
