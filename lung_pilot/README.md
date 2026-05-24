@@ -31,6 +31,7 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 | ① Tiling | ✅ 완료 | `tilitng_output/224/TCGA-LUAD/`, `tilitng_output/112/` |
 | ② Graph (`.pt`) | ✅ 완료 | `graph_output/224/`, `graph_output/112/` |
 | ③ Inference | ✅ 완료 (2026-05-24, predictions + features) | `inference_output/<slide>/predictions.{csv,npy}` + `features_resnet.npy` + `features_fused.npy` |
+| ④ Hist2Cell UMAP 비교 | ✅ 완료 (2026-05-24, baseline) | `umap_output/` (4 PNG + `summary.md`) |
 
 ## 폴더 구조
 ```
@@ -42,7 +43,9 @@ lung_pilot/
 │   ├── 224/             # <slide>.pt (Hist2Cell 입력) + <slide>_spots.csv
 │   ├── 112/             # <slide>.pt (HEX 입력) + <slide>_spots.csv
 │   └── README.md        # .pt 포맷·로드법·주의
-└── inference_output/    # Hist2Cell 추론 결과 — <slide>/{predictions.{csv,npy}, features_resnet.npy [N,512], features_fused.npy [N,256]} + _logs/
+├── inference_output/    # Hist2Cell 추론 결과 — <slide>/{predictions.{csv,npy}, features_resnet.npy [N,512], features_fused.npy [N,256]} + _logs/
+├── umap_compare.py      # 3 rep × 3 slide UMAP 시각화 스크립트
+└── umap_output/         # UMAP PNG 4장 + summary.md (해석)
 ```
 세부 문서: 각 `tilitng_output/*/tiling_summary.md`, `graph_output/README.md`.
 
@@ -80,16 +83,27 @@ done
 (`infer.py` 의 `Hist2Cell.forward(..., return_features=True)` 가 두 feature 를 함께 반환,
 worker 가 shard 에 저장 → main 이 `features_{resnet,fused}.npy` 로 머지.)
 
-## 다음 단계 — UMAP 비교
+## ④ Hist2Cell UMAP baseline (2026-05-24 완료)
 
-1. **HEX / DINO** (repo 외부 모델, 사용자 측) — `graph_output/112/*.pt` 사용.
-   HEX expression + DINO 벡터 concat 준비.
-2. **비교 UMAP 세 갈래** (Hist2Cell 쪽 입력 선택지):
-   - **prediction (80-d)** — cell-type 공간 UMAP. 축이 직접 해석 가능 (어떤 cell type 이 풍부한 spot 군). HEX expression 대응.
-     - 사전 처리 권장: `log1p` 또는 row-normalize (row_sum scale 1–63 차이가 큼).
-   - **features_fused (256-d)** — Hist2Cell 의 통합 representation. graph context 반영.
-   - **features_resnet (512-d)** — graph 없는 순수 visual. HEX 의 DINO 와 가장 직접 비교.
-3. 두 모델의 같은 spot 임베딩 동질성 검정: Procrustes / kNN-overlap / clustering ARI 등.
+3 representation × 3 슬라이드 UMAP + cross-slide combined UMAP 4장 생성.
+요약과 해석: **`umap_output/summary.md`** (PNG 임베드 + 캡션).
+
+주요 관찰 (요약 — 자세한 건 summary.md 참조):
+
+- `prediction_log1p` (80-d) — cross-slide 에서 3 슬라이드가 거의 완전히
+  섞임 → cell-type 공간은 tissue-generic. HEX 비교 시 가장 깨끗한 baseline.
+- `features_fused` (256-d) — 부분적 슬라이드별 cluster (중간 batch). graph
+  context 반영.
+- `features_resnet` (512-d) — 슬라이드별 강한 분리. raw visual 이 stain
+  /모폴로지 차이를 직접 반영 → batch-sensitive.
+
+## 다음 단계
+
+1. **HEX / DINO** (repo 외부 모델, 사용자 측) — `graph_output/112/*.pt` 입력.
+   HEX expression + DINO 벡터가 도착하면 본 framework 와 동일한 cross-slide
+   + per-slide UMAP 생성 후 Hist2Cell 결과와 직접 비교.
+2. (선택) 정량 metric — slide 1-NN purity / kNN overlap / Procrustes 로
+   두 모델 representation 정합성 측정.
 
 ## 주의
 - TCGA-LUAD 는 native 20× — 112→224 업샘플 패치는 면적(56µm)만 맞고 해상도는 OOD.
