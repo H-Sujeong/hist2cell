@@ -68,7 +68,7 @@ class Hist2Cell(nn.Module):
         self.local_head = Mlp(in_features=256, hidden_features=512 * 2, out_features=cell_dim)
         self.fused_head = Mlp(in_features=256, hidden_features=512 * 2, out_features=cell_dim)
 
-    def forward(self, x, edge_index):
+    def forward(self, x, edge_index, return_features: bool = False):
         x_spot = self.resnet18(x).squeeze(-1).squeeze(-1)   # [N, 512]
         x_local = self.conv1(x=x_spot, edge_index=edge_index)
         x_local = self.norm1(x_local)
@@ -84,9 +84,12 @@ class Hist2Cell(nn.Module):
         cp_global = cp_global.squeeze(0) if cp_global.dim() == 3 else cp_global
         x_global = x_global.squeeze(0) if x_global.dim() == 3 else x_global
 
-        cp_fused = self.fused_head((x_spot_e + x_local_flat + x_global) / 3.0)
-        cp = (cp_spot + cp_local + cp_global + cp_fused) / 4.0
-        return torch.relu(cp)
+        fused_repr = (x_spot_e + x_local_flat + x_global) / 3.0
+        cp_fused = self.fused_head(fused_repr)
+        cp = torch.relu((cp_spot + cp_local + cp_global + cp_fused) / 4.0)
+        if return_features:
+            return cp, {"resnet": x_spot, "fused": fused_repr}
+        return cp
 
 
 # ---------------- worker ----------------
@@ -127,15 +130,19 @@ def worker(rank: int, world_size: int, data_path: str, weight_path: str,
 
     n_my = len(shard)
     preds = np.zeros((n_my, 80), dtype=np.float32)
+    feats_resnet = np.zeros((n_my, 512), dtype=np.float32)
+    feats_fused = np.zeros((n_my, 256), dtype=np.float32)
     indices = np.zeros(n_my, dtype=np.int64)
     pos = 0
     t0 = time.time()
     with torch.no_grad():
         for sub in loader:
             sub = sub.to(device, non_blocking=True)
-            cp = model(sub.x, sub.edge_index)            # [N_sub, 80]
+            cp, feats = model(sub.x, sub.edge_index, return_features=True)
             bs = int(sub.batch_size)
             preds[pos:pos + bs] = cp[:bs].cpu().numpy()
+            feats_resnet[pos:pos + bs] = feats["resnet"][:bs].cpu().numpy()
+            feats_fused[pos:pos + bs] = feats["fused"][:bs].cpu().numpy()
             # PyG 2.7 returns input_id as a *local* index into input_nodes,
             # not the global graph index — map back through the shard.
             indices[pos:pos + bs] = shard[sub.input_id.cpu()].numpy()
@@ -145,7 +152,11 @@ def worker(rank: int, world_size: int, data_path: str, weight_path: str,
                 print(f"[gpu0] {pos}/{n_my}  ({rate:.1f} spots/s)", flush=True)
 
     out_path = Path(out_dir) / f"shard_{rank}.npz"
-    np.savez(out_path, indices=indices[:pos], preds=preds[:pos])
+    np.savez(out_path,
+             indices=indices[:pos],
+             preds=preds[:pos],
+             feats_resnet=feats_resnet[:pos],
+             feats_fused=feats_fused[:pos])
     if rank == 0:
         print(f"[gpu0] done {pos}/{n_my} in {time.time()-t0:.1f}s", flush=True)
 
@@ -189,11 +200,15 @@ def main():
     data = torch.load(args.data, map_location="cpu", weights_only=False)
     n = data.num_nodes
     final = np.zeros((n, 80), dtype=np.float32)
+    final_resnet = np.zeros((n, 512), dtype=np.float32)
+    final_fused = np.zeros((n, 256), dtype=np.float32)
     seen = np.zeros(n, dtype=bool)
     for r in range(args.world_size):
         sh_path = out_dir / f"shard_{r}.npz"
         sh = np.load(sh_path)
         final[sh["indices"]] = sh["preds"]
+        final_resnet[sh["indices"]] = sh["feats_resnet"]
+        final_fused[sh["indices"]] = sh["feats_fused"]
         seen[sh["indices"]] = True
 
     missing_n = int((~seen).sum())
@@ -211,8 +226,12 @@ def main():
     df.insert(2, "Y", data.pos[:, 1].numpy().astype(int))
     csv_path = out_dir / "predictions.csv"
     npy_path = out_dir / "predictions.npy"
+    feat_resnet_path = out_dir / "features_resnet.npy"
+    feat_fused_path = out_dir / "features_fused.npy"
     df.to_csv(csv_path, index=False)
     np.save(npy_path, final)
+    np.save(feat_resnet_path, final_resnet)
+    np.save(feat_fused_path, final_fused)
 
     for r in range(args.world_size):
         (out_dir / f"shard_{r}.npz").unlink()
@@ -220,6 +239,8 @@ def main():
     print(f"Saved:")
     print(f"  {csv_path}  ({n} spots × 80 cell types)")
     print(f"  {npy_path}")
+    print(f"  {feat_resnet_path}  ({n} spots × 512 resnet18 features)")
+    print(f"  {feat_fused_path}  ({n} spots × 256 pre-fused-head features)")
 
 
 if __name__ == "__main__":

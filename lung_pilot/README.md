@@ -30,7 +30,7 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 |---|---|---|
 | ① Tiling | ✅ 완료 | `tilitng_output/224/TCGA-LUAD/`, `tilitng_output/112/` |
 | ② Graph (`.pt`) | ✅ 완료 | `graph_output/224/`, `graph_output/112/` |
-| ③ Inference | ✅ 완료 (2026-05-24) | `inference_output/<slide>/predictions.{csv,npy}` |
+| ③ Inference | ✅ 완료 (2026-05-24, predictions + features) | `inference_output/<slide>/predictions.{csv,npy}` + `features_resnet.npy` + `features_fused.npy` |
 
 ## 폴더 구조
 ```
@@ -42,7 +42,7 @@ lung_pilot/
 │   ├── 224/             # <slide>.pt (Hist2Cell 입력) + <slide>_spots.csv
 │   ├── 112/             # <slide>.pt (HEX 입력) + <slide>_spots.csv
 │   └── README.md        # .pt 포맷·로드법·주의
-└── inference_output/    # Hist2Cell 추론 결과 — <slide>/predictions.{csv,npy} + _logs/
+└── inference_output/    # Hist2Cell 추론 결과 — <slide>/{predictions.{csv,npy}, features_resnet.npy [N,512], features_fused.npy [N,256]} + _logs/
 ```
 세부 문서: 각 `tilitng_output/*/tiling_summary.md`, `graph_output/README.md`.
 
@@ -54,16 +54,18 @@ lung_pilot/
 | TCGA-05-4245-01A-01-TS1 | 1,871 | 7,499 |
 | TCGA-05-4390-01A-01-BS1 | 10,661 | 42,615 |
 
-## 추론 결과 (2026-05-24 완료)
+## 추론 결과 (2026-05-24 완료, features 포함 재추론)
 
-| slide | spots | cell types | row_sum (abundance) | shard 시간 (4× A5000) |
-|---|---|---|---|---|
-| TCGA-05-4245-01A-01-BS1 | 2,869 | 80 | 1.32 – 62.81 | 23.6 s |
-| TCGA-05-4245-01A-01-TS1 | 1,871 | 80 | 1.85 – 49.43 | 7.2 s |
-| TCGA-05-4390-01A-01-BS1 | 10,661 | 80 | 1.70 – 49.28 | 60.0 s |
+| slide | spots | predictions (80-d) | features_resnet (512-d) | features_fused (256-d) | shard 시간 (4× A5000) |
+|---|---|---|---|---|---|
+| TCGA-05-4245-01A-01-BS1 | 2,869 | row_sum 1.32–62.81 | NaN 0, range [0, 4.5] | NaN 0, range ≈[-5, 5] | 17.4 s |
+| TCGA-05-4245-01A-01-TS1 | 1,871 | row_sum 1.85–49.43 | NaN 0, range [0, 4.2] | NaN 0, range ≈[-5, 4] | 21.6 s |
+| TCGA-05-4390-01A-01-BS1 | 10,661 | row_sum 1.70–49.28 | NaN 0, range [0, 4.5] | NaN 0, range ≈[-5, 5] | 55.4 s |
 
-NaN 없음. CSV 컬럼 = `spot_id, X, Y, <80 cell types>` (총 83), `.npy` 는 (N, 80).
-row_sum 은 cell2location abundance scale 그대로 (확률 아님).
+세 가지 산출:
+- **`predictions.{csv,npy}`** — 80 cell-type abundance (cell2location scale, 확률 아님). CSV = `spot_id, X, Y, <80 cell types>` (83 col), NPY = `(N, 80)`.
+- **`features_resnet.npy`** — `(N, 512)`. ResNet18 backbone 의 spot 단위 visual feature (graph context 미포함, ReLU 후 비음수). HEX 의 DINO 와 직접 대응되는 모폴로지 representation.
+- **`features_fused.npy`** — `(N, 256)`. `(x_spot_e + x_local + x_global)/3` — Hist2Cell 의 fused_head 직전 통합 representation (visual + GAT graph + transformer). prediction 의 직접 precursor.
 
 추론 명령 (참고):
 ```bash
@@ -75,12 +77,19 @@ for s in TCGA-05-4245-01A-01-BS1 TCGA-05-4245-01A-01-TS1 TCGA-05-4390-01A-01-BS1
     --output  lung_pilot/inference_output/$s
 done
 ```
+(`infer.py` 의 `Hist2Cell.forward(..., return_features=True)` 가 두 feature 를 함께 반환,
+worker 가 shard 에 저장 → main 이 `features_{resnet,fused}.npy` 로 머지.)
 
-## 다음 단계
+## 다음 단계 — UMAP 비교
 
 1. **HEX / DINO** (repo 외부 모델, 사용자 측) — `graph_output/112/*.pt` 사용.
-   HEX expression + DINO 벡터 concat → UMAP.
-2. **비교 UMAP** — Hist2Cell cell-type UMAP (위 `predictions.npy`) vs `[HEX⊕DINO]` UMAP.
+   HEX expression + DINO 벡터 concat 준비.
+2. **비교 UMAP 세 갈래** (Hist2Cell 쪽 입력 선택지):
+   - **prediction (80-d)** — cell-type 공간 UMAP. 축이 직접 해석 가능 (어떤 cell type 이 풍부한 spot 군). HEX expression 대응.
+     - 사전 처리 권장: `log1p` 또는 row-normalize (row_sum scale 1–63 차이가 큼).
+   - **features_fused (256-d)** — Hist2Cell 의 통합 representation. graph context 반영.
+   - **features_resnet (512-d)** — graph 없는 순수 visual. HEX 의 DINO 와 가장 직접 비교.
+3. 두 모델의 같은 spot 임베딩 동질성 검정: Procrustes / kNN-overlap / clustering ARI 등.
 
 ## 주의
 - TCGA-LUAD 는 native 20× — 112→224 업샘플 패치는 면적(56µm)만 맞고 해상도는 OOD.
