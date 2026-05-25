@@ -1,0 +1,15 @@
+representation,metric,k,vs,value
+prediction_log1p,slide_1nn_purity,,,0.7752094019868839
+features_fused,slide_1nn_purity,,,0.9472761508992923
+features_resnet,slide_1nn_purity,,,0.8134536718394909
+features_dinov2,slide_1nn_purity,,,0.908252710862931
+prediction_log1p,knn_overlap_jaccard,10.0,features_dinov2,0.00493220891803503
+prediction_log1p,knn_overlap_jaccard,50.0,features_dinov2,0.011706318706274033
+features_fused,knn_overlap_jaccard,10.0,features_dinov2,0.013820563443005085
+features_fused,knn_overlap_jaccard,50.0,features_dinov2,0.0212803203612566
+features_resnet,knn_overlap_jaccard,10.0,features_dinov2,0.006863441318273544
+features_resnet,knn_overlap_jaccard,50.0,features_dinov2,0.01604757085442543
+prediction_log1p,silhouette_lineage,,,0.017349572852253914
+features_fused,silhouette_lineage,,,-0.00019280843844171613
+features_resnet,silhouette_lineage,,,0.011009241454303265
+features_dinov2,silhouette_lineage,,,0.012650498189032078

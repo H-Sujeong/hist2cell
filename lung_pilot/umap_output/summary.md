@@ -103,24 +103,31 @@ DINOv2 panel 은 *DINOv2 자체의 cluster 가 Hist2Cell 의 cell-type 라벨과
 
 ![per-slide BS1](per_slide_TCGA-05-4245-01A-01-BS1.png)
 
-대부분 spot 의 dominant lineage 는 **Epithelial-alveolar (파)** 와
-**Immune-myeloid (연두)** 두 가지. 네 representation 모두 두 lineage
-가 부분적으로 영역을 나누지만 cluster 가 깨끗하게 분리되진 않음
-(혼재 영역 多). `prediction_log1p` 에서 cluster 구분이 가장 직관적이고,
-`features_resnet` 으로 갈수록 cell-type 보다는 morphology-smooth gradient
-가 두드러진다. `features_dinov2` 도 비슷한 morphology-smooth 패턴 —
-self-supervised 라 cell-type lineage 색이 manifold 의 한 방향과
-조용히 정렬되는 정도 (강한 cluster 형성 X).
+> ⚠️ **색-라벨 매핑 정정 (2026-05-25)**: `tab20` 색은 lineage 의 알파벳
+> 정렬 순서로 배정된다 (`sorted(set(labels))`). 따라서 **파 =
+> Epithelial-airway, 연두 = Epithelial-alveolar**, 주황/빨강 = Immune-*
+> 순. 이전 작성본에서 "파 = alveolar, 연두 = myeloid" 로 쓴 것은 잘못이며,
+> 정량 비교 결과 cross-slide 의 dominant lineage 는 **Epithelial-airway
+> 가 72%** 로 압도적 (자세한 분포: `compare_output/summary.md`).
+
+대부분 spot 이 **Epithelial-airway (파)** 이며, 작은 비율의 alveolar
+(연두) 와 stromal 계열이 섞임. 네 representation 모두 lineage cluster
+가 깨끗하게 분리되진 않음 (혼재 영역 多). `prediction_log1p` 에서
+cluster 구분이 가장 직관적이고, `features_resnet` 으로 갈수록 cell-type
+보다는 morphology-smooth gradient 가 두드러진다. `features_dinov2`
+도 비슷한 morphology-smooth 패턴 — self-supervised 라 cell-type lineage
+색이 manifold 의 한 방향과 조용히 정렬되는 정도 (강한 cluster 형성 X).
 
 #### 3.2.2 TCGA-05-4245-01A-01-TS1 (1,871 spots)
 
 ![per-slide TS1](per_slide_TCGA-05-4245-01A-01-TS1.png)
 
-TS1 도 alveolar (파) 우세 + 작은 myeloid (연두) pocket.
-spot 수가 가장 적어 cluster structure 가 다른 두 슬라이드보다 약하다.
-네 representation 모두 단일 큰 blob 형태로 cell-type 별 명확한 분리는
-보이지 않음 — TS1 자체가 조직학적으로 비교적 동질적인 영역을 다루는
-section 일 가능성. DINOv2 도 마찬가지로 manifold 전체가 비교적 평탄.
+TS1 도 **Epithelial-airway (파)** 우세 + 작은 alveolar (연두) pocket
++ stromal 계열 점들. spot 수가 가장 적어 cluster structure 가 다른 두
+슬라이드보다 약하다. 네 representation 모두 단일 큰 blob 형태로
+cell-type 별 명확한 분리는 보이지 않음 — TS1 자체가 조직학적으로
+비교적 동질적인 영역을 다루는 section 일 가능성. DINOv2 도 마찬가지로
+manifold 전체가 비교적 평탄.
 
 #### 3.2.3 TCGA-05-4390-01A-01-BS1 (10,661 spots)
 
@@ -143,7 +150,11 @@ feature (모폴로지) 공간의 차이를 가장 잘 보여주는 슬라이드.
 - **UMAP 의 global geometry 는 신뢰 X** — 점 사이의 *local neighborhood* 만
   신뢰. 슬라이드 간 cluster "거리" 를 정량적으로 읽지 말 것. batch effect 의
   강도도 본 PNG 만으로는 정성 판단; kNN overlap, silhouette by slide,
-  scIB-style metric 등으로 정량화가 가능.
+  scIB-style metric 등으로 정량화가 가능. (→ 정량 검증 완료:
+  [`../compare_output/summary.md`](../compare_output/summary.md). UMAP 의
+  시각적 "잘 섞임" 과 raw 1-NN purity 가 *순위가 달라진다* 는 점이 확인됨
+  — 특히 `features_fused` 가 UMAP 에선 중간 batch 였지만 raw 에서는
+  1-NN purity 0.947 로 가장 batch-confined.)
 - **lung 학습 모델** — Hist2Cell 가중치는 healthy human lung 학습 (cell2location
   leave-A50-out). TCGA-LUAD 는 lung 도메인이라 OK 이지만 종양/정상 mix 인
   점, cell2location 자체가 abundance scale (확률 X) 인 점은 해석 시 명시.

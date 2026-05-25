@@ -34,6 +34,7 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 | ④ Hist2Cell UMAP baseline | ✅ 완료 (2026-05-24) | `umap_output/` (초기 4 PNG + `summary.md`) |
 | ⑤ DINOv2 ViT-B/14 추론 | ✅ 완료 (2026-05-25) | `dino_output/<slide>/features_dinov2.npy` [N,768] |
 | ⑥ UMAP 4 rep 비교 (Hist2Cell × 3 + DINOv2) | ✅ 완료 (2026-05-25) | `umap_output/` PNG 재생성 + `summary.md` 갱신 |
+| ⑦ 정량 비교 (Hist2Cell vs DINOv2) | ✅ 완료 (2026-05-25) | `compare_output/` (`metrics.csv` + `metrics_bars.png` + `summary.md`) |
 
 ## 폴더 구조
 ```
@@ -49,7 +50,9 @@ lung_pilot/
 ├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
 ├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
 ├── umap_compare.py      # 4 rep × 3 slide UMAP 시각화 스크립트 (Hist2Cell 3 + DINOv2)
-└── umap_output/         # UMAP PNG 4장 + summary.md (해석)
+├── umap_output/         # UMAP PNG 4장 + summary.md (해석)
+├── compare_hist2cell_vs_dinov2.py  # 정량 metric (1-NN purity / kNN overlap / silhouette)
+└── compare_output/      # metrics.csv + metrics_bars.png + summary.md
 ```
 세부 문서: 각 `tilitng_output/*/tiling_summary.md`, `graph_output/README.md`.
 
@@ -136,13 +139,34 @@ Hist2Cell 3 rep (`prediction_log1p` / `features_fused` / `features_resnet`)
 → HEX 결과가 도착하면 `prediction_log1p ↔ HEX expression`, `features_dinov2 ↔
 HEX 측 DINO` 짝이 가장 자연스러운 대응.
 
+## ⑦ 정량 비교 결과 요약 (2026-05-25)
+
+| metric | prediction_log1p | features_fused | features_resnet | features_dinov2 |
+|---|---|---|---|---|
+| slide 1-NN purity (낮을수록 mix 좋음, chance≈0.33) | **0.775** | 0.947 | 0.813 | 0.908 |
+| kNN overlap vs DINOv2 (k=10 / k=50, 높을수록 유사) | 0.005 / 0.012 | **0.014 / 0.021** | 0.007 / 0.016 | — |
+| silhouette by dominant lineage (높을수록 cell-type 분리) | **0.017** | -0.000 | 0.011 | 0.013 |
+
+**핵심 교훈** — UMAP 의 시각적 batch 판단과 raw 1-NN purity 가 *순위가
+다르다*. 특히 `features_fused` 가 UMAP 에서는 중간 batch 였지만 raw
+에서는 가장 batch-confined (0.947). 이유: GAT graph aggregation 이
+같은 슬라이드 이웃 spot feature 를 평균내기 때문 — cell-type 신호와
+무관한 구조적 강제. 자세한 해석: **`compare_output/summary.md`**.
+
+**Hist2Cell ↔ DINOv2 representation 의 이웃 구조** 는 chance 보다 10–30배
+높지만 절대값으로는 매우 낮음 (Jaccard ≤ 0.021) — 두 모델이 같은 spot
+의 "유사 spot" 을 거의 다른 신호로 정의한다.
+
 ## 다음 단계
 
 1. **HEX expression** (외부, 사용자 측) — `graph_output/112/*.pt` 입력.
-   도착하면 본 framework 에 5번째 rep 으로 추가 비교.
-2. (선택) 정량 metric — slide 1-NN purity / kNN overlap / Procrustes 로
-   representation 간 / 모델 간 정합성 측정.
-3. (선택) DINOv2 다른 사이즈 (ViT-S, ViT-L) 비교.
+   도착하면 4 rep UMAP 와 정량 비교 framework 에 5번째 rep 으로 추가.
+   본 figure 의 `features_dinov2` 가 HEX 의 DINO 블록 baseline 역할.
+2. (선택) **정확한 chance baseline** — slide-size 가중 1-NN purity baseline
+   계산해 비교를 정량적으로 sharper 하게.
+3. (선택) **DINOv2 다른 사이즈** (ViT-S, ViT-L) 비교.
+4. (선택) **abundance vector 직접 거리** — argmax label silhouette 대신
+   abundance 자체의 inter-spot Spearman correlation 등.
 
 ## 주의
 - TCGA-LUAD 는 native 20× — 112→224 업샘플 패치는 면적(56µm)만 맞고 해상도는 OOD.
