@@ -37,6 +37,7 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 | ⑦ 정량 비교 (Hist2Cell vs DINOv2) | ✅ 완료 (2026-05-25) | `compare_output/` (`metrics.csv` + `metrics_bars.png` + `summary.md`) |
 | ⑧ 3×4 UMAP grid + Epi/Stro subtype 색칠 | ✅ 완료 (2026-05-26) | `umap_output/per_slide_grid_{lineage,epithelial,stromal}.png` + `embeddings/` cache |
 | ⑨ Batch metric 정정 (size-weighted chance + balanced subsample UMAP) | ✅ 완료 (2026-05-26) | `compare_output/metrics_corrected.csv` + `umap_output/cross_slide_balanced.png` |
+| ⑩ Slide-별 TOP10 cell type 통계 + UMAP overlay | ✅ 완료 (2026-05-26) | `top10_output/` (`top10_stats.csv` + `top10_union.csv` + per-slide PNG × 3 + `summary.md`) |
 
 ## 폴더 구조
 ```
@@ -55,7 +56,10 @@ lung_pilot/
 ├── umap_subtype_grid.py # 3×4 grid + Epi/Stro subtype 색칠 (cached embedding 재사용)
 ├── umap_output/         # UMAP PNG (per_slide ×3, cross_slide, grid ×3) + embeddings/ + summary.md
 ├── compare_hist2cell_vs_dinov2.py  # 정량 metric (1-NN purity / kNN overlap / silhouette)
-└── compare_output/      # metrics.csv + metrics_bars.png + summary.md
+├── compare_output/      # metrics.csv + metrics_bars.png + summary.md + metrics_corrected.csv
+├── batch_recheck.py     # size-weighted chance + balanced subsample UMAP
+├── top10_umap.py        # slide-별 TOP10 (mean abundance desc) 통계 + UMAP overlay
+└── top10_output/        # top10_stats.csv + top10_union.csv + per-slide PNG × 3 + summary.md
 ```
 세부 문서: 각 `tilitng_output/*/tiling_summary.md`, `graph_output/README.md`.
 
