@@ -55,35 +55,50 @@ HEX expression 결과가 아직 없어, 본 작업은 *현재 보유한 두 모�
 ### 3.1 Slide 1-NN purity — batch effect 정량
 
 각 spot 의 raw representation 에서 1-NN 이웃 1개를 잡아, **그 이웃이
-같은 슬라이드인 비율**. chance baseline 은 가장 큰 슬라이드 비율 ≒
-`10661/15401 = 0.69` 또는 ½ × (∑ pᵢ²) ≈ 0.51; 단순 균등 chance 는
-`1/3 = 0.33`. **낮을수록 batch-mix 가 좋다 (= 슬라이드 간 spot 이 잘
-섞임).**
+같은 슬라이드인 비율**. **낮을수록 batch-mix 가 좋다.**
 
-| representation | dim | 1-NN purity | 정성 (UMAP) 관찰과 비교 |
-|---|---|---|---|
-| `prediction_log1p` | 80 | **0.775** | UMAP 에선 "거의 완전 섞임" 으로 봤지만 raw kNN 으로는 77% 가 같은 슬라이드. 정성 ↔ 정량 차이 가장 큼. |
-| `features_fused` | 256 | **0.947** | UMAP 에선 "중간 batch" 로 봤지만 **사실상 거의 모두 같은 슬라이드 1-NN**. 가장 batch-sensitive. |
-| `features_resnet` | 512 | 0.813 | UMAP 에선 "강한 분리" 로 봤는데 정량으론 fused/dinov2 보다 낮음. |
-| `features_dinov2` | 768 | 0.908 | UMAP 의 정성 관찰 ("resnet 보단 약간 나음") 과 정반대로 raw 에선 resnet 보다 높음. |
+> **2026-05-26 정정 — chance baseline 은 uniform 1/3 이 아니라 slide-size
+> 가중 ∑ pᵢ²**. 초기 작성본에서 chance 를 `1/3 = 0.33` 으로만 표기해
+> prediction 의 0.775 가 "강한 batch" 처럼 보이게 했는데, 4390-BS1 이
+> spot 의 69.2% 를 차지하므로 batch effect 가 0 이라도 random 1-NN 이
+> 같은 슬라이드일 chance 는 `Σ pᵢ² ≈ 0.529`. 이를 반영해 *excess over
+> weighted chance* = `(purity − chance) / (1 − chance)` 로 batch 정도를
+> 재해석. 또한 spot-수 효과를 시각적으로도 제거하기 위해 각 슬라이드
+> 1,871 spot 로 random sample 한 **balanced cross-slide UMAP** 도 생성
+> ([`../umap_output/cross_slide_balanced.png`](../umap_output/cross_slide_balanced.png)).
+> 자세한 표는 [`metrics_corrected.csv`](metrics_corrected.csv).
 
-**핵심 해석**
+| representation | dim | 1-NN purity (전체 15,401) | excess (chance=0.529) | balanced purity (1,871 × 3) | balanced excess (chance=0.333) |
+|---|---|---|---|---|---|
+| `prediction_log1p` | 80 | 0.775 | **+0.523** | 0.663 | **+0.495** |
+| `features_fused` | 256 | 0.947 | +0.888 | 0.897 | +0.846 |
+| `features_resnet` | 512 | 0.813 | +0.604 | 0.711 | +0.567 |
+| `features_dinov2` | 768 | 0.908 | +0.805 | 0.836 | +0.754 |
 
-- **UMAP global geometry 는 정량 batch effect 와 안 맞는다.** 이는
-  UMAP 자체의 caveat (local neighborhood 보존, global layout 은 force-directed
-  로 펴짐) 이 정확히 들어맞은 사례. UMAP 시각화로 batch effect 를
-  눈대중 판정하지 말 것 — 1-NN purity 같은 raw metric 으로 측정해야 한다.
-- **`features_fused` 의 0.947 은 graph aggregation 효과**. fused =
-  `(x_spot_e + x_local + x_global) / 3` 이고 `x_local` 은 GATv2Conv 가
-  kNN 그래프 위에서 이웃 spot feature 를 평균한 것. **그래프 edge 는
-  같은 슬라이드 spot 사이에만** 존재 (build_graph_from_tiles.py 의
-  k=6 kNN). 즉 같은 슬라이드 이웃 정보를 평균낸 결과라 동일 슬라이드
-  spot 끼리 자연스럽게 매우 유사. *cell-type signal 과 무관한 구조적
-  강제.*
-- **prediction 의 0.775 도 chance (0.33) 보다 훨씬 높다.** "tissue-generic
-  ↔ batch-free" 는 아님 — 슬라이드별 cell-type 분포가 다르면 prediction
-  도 그 차이를 반영하므로 1-NN purity 가 chance 위로 올라간다 (특히
-  4390-BS1 의 spot 비중 69% 만으로도 baseline 이 크게 올라간다).
+두 방식 모두 **순위 동일** (fused > dinov2 > resnet > prediction).
+
+**핵심 해석 (정정 후)**
+
+- **prediction 의 batch 는 다른 rep 보다 명확히 약하다** — balanced excess
+  0.495 가 가장 낮음. 사용자 지적 ("prediction 에선 3 슬라이드가
+  유사 범주에 mapping 됨") 이 정량/시각 양쪽으로 지지된다. balanced
+  UMAP PNG 에서도 prediction panel 의 3 슬라이드가 가장 골고루 섞인다.
+- 다만 **"batch effect 가 없다" 까진 말 못 함** — chance 위로 +0.5 정도는
+  남아 있다. 이 잔여 batch 는 (a) 슬라이드별 실제 cell-type 조성 차이
+  (병변 / 정상 영역 비율 등) 가 prediction 에 반영된 *의미 있는 신호*
+  일 가능성 + (b) 모델의 slide-specific stain/exposure 편향이 prediction
+  에까지 새어든 부분 — 본 데이터로는 둘이 구분 안 됨.
+- **`features_fused` 의 0.89 ~ 0.95 는 graph aggregation 효과로 거의 설명**.
+  fused = `(x_spot_e + x_local + x_global) / 3` 이고 `x_local` 은
+  GATv2Conv 가 kNN 그래프 위에서 이웃 spot feature 를 평균한 것. 그래프
+  edge 는 같은 슬라이드 spot 사이에만 존재 (`build_graph_from_tiles.py`
+  의 k=6 kNN). 즉 같은 슬라이드 이웃 정보를 평균낸 결과라 동일 슬라이드
+  spot 끼리 자연스럽게 매우 유사 — *cell-type signal 과 무관한 구조적
+  강제.* balanced subsample 으로도 거의 그대로 (0.897) 라는 점이 이를 확증.
+- **UMAP global geometry 의 caveat 는 여전히 유효** — 단순 시각만으론
+  spot-수 효과와 batch effect 가 섞여 보인다. 본 작업에선 (i) chance
+  baseline 정정 + (ii) balanced subsample 의 두 가지를 같이 적용해 두
+  요인을 풀어낸다.
 
 ### 3.2 kNN overlap (Jaccard) — Hist2Cell ↔ DINOv2 이웃 구조 일치
 

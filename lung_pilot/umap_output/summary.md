@@ -49,6 +49,13 @@ metric='euclidean', random_state=42`. 색칠 기준은 두 가지.
 3 슬라이드 (총 15,401 spots) 를 합쳐 representation 별로 따로 UMAP 을
 fit. 점 색은 slide ID (파 = 4245-BS1, 주 = 4245-TS1, 초 = 4390-BS1).
 
+> **⚠️ 시각 해석 주의** — 4390-BS1 (초록) 이 spot 의 **69%** 를 차지하므로
+> visual 적으로 어느 region 을 4390 이 dominant 하게 보이는 건 spot 수
+> 효과가 크다. 진짜 batch effect 와 sample-size dominance 를 분리하려면
+> 아래 §3.1.5 의 **balanced subsample UMAP** 과 정량 metric
+> ([`../compare_output/summary.md`](../compare_output/summary.md) §3.1) 을
+> 함께 봐야 한다.
+
 - **prediction_log1p (80-d)** — 세 슬라이드가 거의 완전히 뒤섞여
   같은 manifold 위에 분포. 즉 Hist2Cell 의 cell-type 예측 공간은
   슬라이드 간 비교가 가능한 **tissue-generic 좌표계**. 슬라이드 사이즈
@@ -88,6 +95,27 @@ fit. 점 색은 slide ID (파 = 4245-BS1, 주 = 4245-TS1, 초 = 4390-BS1).
 HEX⊕DINO 비교 해석 시 DINO 블록이 cell-type 신호가 아닌 batch/morphology
 방향으로 분산을 차지할 수 있음을 시사 — concat 전 블록별 정규화/PCA 가
 중요한 이유.
+
+#### 3.1.5 Balanced subsample — spot-수 효과 제거한 cross-slide UMAP
+
+![balanced cross-slide UMAP](cross_slide_balanced.png)
+
+각 슬라이드에서 동일하게 **1,871 spot** (가장 작은 TS1 기준) 만 random
+sample 후 cross-slide UMAP 을 4 representation 별로 fit. 위 §3.1
+PNG 의 4390 (초록) dominance 가 단순 spot 수 5배 효과인지 진짜 batch
+인지를 시각적으로 분리한다. 각 panel 의 title 에 balanced 1-NN purity
+(chance = 1/3 ≈ 0.333) 도 함께 표시.
+
+| rep | balanced 1-NN purity | excess (chance 0.333) | 시각 |
+|---|---|---|---|
+| `prediction_log1p` | 0.663 | +0.495 | 3 슬라이드 가장 골고루 섞임. *"유사 범주에 3 슬라이드 mapping"* 시각으로 확인. |
+| `features_fused` | 0.897 | +0.846 | 4390/4245-TS1/4245-BS1 이 명확히 분리된 영역. graph aggregation 효과 여전. |
+| `features_resnet` | 0.711 | +0.567 | 4390 vs 4245 (두 슬라이드 묶음) 의 좌우 분리, prediction 보단 강함. |
+| `features_dinov2` | 0.836 | +0.754 | 4390 이 한쪽으로 모이는 batch 강함. |
+
+이전 cross_slide_combined.png 의 정성적 인상보다 prediction 의 batch
+가 명확히 가장 약하다는 점이 **balanced UMAP + excess 두 metric 으로
+일관 확인**. 정량 표 + 해석은 [`../compare_output/summary.md`](../compare_output/summary.md) §3.1.
 
 ### 3.2 Per-slide — dominant cell-type lineage
 

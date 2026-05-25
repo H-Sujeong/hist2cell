@@ -36,6 +36,7 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 | ⑥ UMAP 4 rep 비교 (Hist2Cell × 3 + DINOv2) | ✅ 완료 (2026-05-25) | `umap_output/` PNG 재생성 + `summary.md` 갱신 |
 | ⑦ 정량 비교 (Hist2Cell vs DINOv2) | ✅ 완료 (2026-05-25) | `compare_output/` (`metrics.csv` + `metrics_bars.png` + `summary.md`) |
 | ⑧ 3×4 UMAP grid + Epi/Stro subtype 색칠 | ✅ 완료 (2026-05-26) | `umap_output/per_slide_grid_{lineage,epithelial,stromal}.png` + `embeddings/` cache |
+| ⑨ Batch metric 정정 (size-weighted chance + balanced subsample UMAP) | ✅ 완료 (2026-05-26) | `compare_output/metrics_corrected.csv` + `umap_output/cross_slide_balanced.png` |
 
 ## 폴더 구조
 ```
@@ -145,15 +146,19 @@ HEX 측 DINO` 짝이 가장 자연스러운 대응.
 
 | metric | prediction_log1p | features_fused | features_resnet | features_dinov2 |
 |---|---|---|---|---|
-| slide 1-NN purity (낮을수록 mix 좋음, chance≈0.33) | **0.775** | 0.947 | 0.813 | 0.908 |
+| 1-NN purity (전체 15,401, excess over weighted chance 0.529) | 0.775 (+0.523) | 0.947 (+0.888) | 0.813 (+0.604) | 0.908 (+0.805) |
+| balanced 1-NN purity (1,871×3, excess over 0.333) | **0.663 (+0.495)** | 0.897 (+0.846) | 0.711 (+0.567) | 0.836 (+0.754) |
 | kNN overlap vs DINOv2 (k=10 / k=50, 높을수록 유사) | 0.005 / 0.012 | **0.014 / 0.021** | 0.007 / 0.016 | — |
 | silhouette by dominant lineage (높을수록 cell-type 분리) | **0.017** | -0.000 | 0.011 | 0.013 |
 
-**핵심 교훈** — UMAP 의 시각적 batch 판단과 raw 1-NN purity 가 *순위가
-다르다*. 특히 `features_fused` 가 UMAP 에서는 중간 batch 였지만 raw
-에서는 가장 batch-confined (0.947). 이유: GAT graph aggregation 이
-같은 슬라이드 이웃 spot feature 를 평균내기 때문 — cell-type 신호와
-무관한 구조적 강제. 자세한 해석: **`compare_output/summary.md`**.
+**핵심 교훈** (2026-05-26 정정 후) — chance baseline 을 정확히 잡고
+balanced subsample 으로 spot-수 효과를 제거하면, **prediction 이 명확히
+가장 batch-free** (balanced excess +0.495, 다른 rep 의 절반 정도). 다른
+rep 의 순위 (fused > dinov2 > resnet > prediction) 는 유지. 특히
+`features_fused` 의 매우 높은 purity 는 GAT graph aggregation 이 같은
+슬라이드 spot 의 feature 를 평균내는 구조적 강제 — cell-type 신호와
+무관. 자세한 해석: **`compare_output/summary.md`** + balanced UMAP:
+**`umap_output/cross_slide_balanced.png`**.
 
 **Hist2Cell ↔ DINOv2 representation 의 이웃 구조** 는 chance 보다 10–30배
 높지만 절대값으로는 매우 낮음 (Jaccard ≤ 0.021) — 두 모델이 같은 spot
