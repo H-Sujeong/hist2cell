@@ -99,6 +99,15 @@ DINOv2 panel 은 *DINOv2 자체의 cluster 가 Hist2Cell 의 cell-type 라벨과
 공간적으로 얼마나 align 되는지* 를 보는 것이지, DINOv2 가 cell-type 을
 "맞춘다" 는 뜻은 아님.
 
+> **참고: 10 lineage 중 7개만 실제로 등장.** Hist2Cell prediction 의
+> argmax 한 cell type 의 group 으로 라벨링하면, 3 슬라이드 합쳐 등장한
+> dominant lineage 는 7개 (Epithelial-airway / Epithelial-alveolar /
+> Immune-lymphoid / Immune-myeloid / Stromal-fibroblast / Stromal-muscle /
+> Vascular). 나머지 3개 (Stromal-other / Neural / Other-blood) 의
+> cell type 들은 어떤 spot 에서도 abundance 1위가 아니라 색이 안 보인다.
+> 분포 자체는 **Epithelial-airway 가 72%** 로 압도적 (자세한 표:
+> `../compare_output/summary.md` §2).
+
 #### 3.2.1 TCGA-05-4245-01A-01-BS1 (2,869 spots)
 
 ![per-slide BS1](per_slide_TCGA-05-4245-01A-01-BS1.png)
@@ -141,6 +150,70 @@ manifold 전체가 비교적 평탄.
 들이 한쪽으로 모이는 약한 cluster 가 보이지만 prediction 만큼 깨끗하진
 않음. **여기가 supervised prediction (cell-type) 공간과 self-/un-supervised
 feature (모폴로지) 공간의 차이를 가장 잘 보여주는 슬라이드.**
+
+### 3.3 3×4 grid — 3 슬라이드 × 4 representation 한 PNG (lineage / Epithelial / Stromal)
+
+같은 12 UMAP 좌표 (1×4 per-slide PNG 와 동일 좌표, `embeddings/`
+캐시 .npy 재사용) 위에 색칠만 바꾼 3 종 grid. dominant lineage
+색칠로는 airway 가 압도적이라 *sub-type 다양성* 이 안 보이는 문제를
+해결하기 위해 Epithelial / Stromal 각 lineage 내부 cell type 별
+색칠을 추가했다. 코드: [`../umap_subtype_grid.py`](../umap_subtype_grid.py).
+
+#### 3.3.1 per_slide_grid_lineage.png — 10 lineage 색
+
+![per-slide 3×4 lineage](per_slide_grid_lineage.png)
+
+기존 per-slide PNG (1×4) 를 3 슬라이드 한 PNG 로 통합. legend 에 10
+lineage 모두 표시 (실제 spot 이 없는 Stromal-other / Neural / Other-blood
+도 anchor 만). 가장 먼 4390-BS1 (3행) 의 좌하단 vascular cluster (갈색)
+가 prediction 에서 명확히 분리되는 것이 가장 잘 보인다.
+
+#### 3.3.2 per_slide_grid_epithelial.png — Epithelial 17 sub-type
+
+![per-slide 3×4 epithelial](per_slide_grid_epithelial.png)
+
+색칠 정책: spot 의 dominant cell type 의 lineage 가 Epithelial-airway
+또는 Epithelial-alveolar 이면 그 cell type 별로 색 (17 sub-type, tab20),
+그 외 lineage 가 dominant 인 spot 은 옅은 grey background. 즉
+*epithelial 이 우세한 spot 들의 sub-type 다양성* 을 본다.
+
+Sub-type 구성:
+- **airway 14** : Basal, Ciliated, Deuterosomal, Dividing_Basal, Ionocyte_n_Brush,
+  Myoepithelial, Neuroendocrine, SMG_Basal, SMG_Duct, SMG_Mucous, SMG_Serous,
+  Secretory_Club, Secretory_Goblet, Suprabasal
+- **alveolar 3** : AT1, AT2, Dividing_AT2
+
+관찰:
+- `prediction_log1p` (1열) 에서 epithelial sub-type 별 cluster 가 비교적
+  뚜렷. 특히 4390-BS1 (3행) 의 좌하·중앙·우측이 각각 다른 sub-type 들
+  ( Basal/Ciliated/Secretory 계열 vs AT1/AT2 ) 로 cluster 형성.
+- `features_fused` / `features_resnet` / `features_dinov2` 로 갈수록 sub-type
+  cluster 가 약해지고 morphology-smooth gradient 가 dominant.
+- 17 sub-type 색이 비슷한 게 많아 (tab20 의 인접 색) 한 점 단위 식별은
+  어렵지만 *cluster 영역의 색조* 차이로 grouping 은 보인다.
+
+#### 3.3.3 per_slide_grid_stromal.png — Stromal 16 sub-type
+
+![per-slide 3×4 stromal](per_slide_grid_stromal.png)
+
+같은 정책으로 Stromal 계열 (-fibroblast 6 + -muscle 6 + -other 4 = 16
+sub-type) 만 색칠, 나머지 grey. Stromal-other (Chondrocyte, Mesothelia,
+NAF_endoneurial, NAF_perineurial) 는 본 데이터에서 dominant 가 거의
+없어 색 거의 안 보임.
+
+관찰:
+- Stromal-dominant spot 자체가 전체의 ~23% 라 grey 가 압도적.
+- 4245-BS1 (1행) 와 4390-BS1 (3행) 의 `prediction_log1p` 에서 stromal
+  sub-type 들이 epithelial cluster 와 *공간적으로 분리된 영역* (UMAP 의
+  가장자리/별도 lobe) 에 모이는 게 보인다.
+- `features_fused` / `features_resnet` / `features_dinov2` 로 갈수록
+  stromal 색이 epithelial 영역과 더 섞임 — feature 공간에선 cell-type
+  분리가 약해지고 모폴로지가 dominant. Hist2Cell prediction 만이
+  stromal cell-type signal 을 깨끗이 잡고 있음을 시사.
+
+> 단, 이 모든 관찰은 **dominant (argmax) 라벨** 기준의 *시각적* 정성.
+> abundance 가 mixed 인 spot 의 정보는 잃었고, 정량 batch-effect 평가는
+> `../compare_output/summary.md` (1-NN purity 등) 참조.
 
 ## 4. 한계 / 주의
 

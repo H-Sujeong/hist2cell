@@ -35,6 +35,7 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 | ⑤ DINOv2 ViT-B/14 추론 | ✅ 완료 (2026-05-25) | `dino_output/<slide>/features_dinov2.npy` [N,768] |
 | ⑥ UMAP 4 rep 비교 (Hist2Cell × 3 + DINOv2) | ✅ 완료 (2026-05-25) | `umap_output/` PNG 재생성 + `summary.md` 갱신 |
 | ⑦ 정량 비교 (Hist2Cell vs DINOv2) | ✅ 완료 (2026-05-25) | `compare_output/` (`metrics.csv` + `metrics_bars.png` + `summary.md`) |
+| ⑧ 3×4 UMAP grid + Epi/Stro subtype 색칠 | ✅ 완료 (2026-05-26) | `umap_output/per_slide_grid_{lineage,epithelial,stromal}.png` + `embeddings/` cache |
 
 ## 폴더 구조
 ```
@@ -49,8 +50,9 @@ lung_pilot/
 ├── inference_output/    # Hist2Cell 추론 결과 — <slide>/{predictions.{csv,npy}, features_resnet.npy [N,512], features_fused.npy [N,256]} + _logs/
 ├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
 ├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
-├── umap_compare.py      # 4 rep × 3 slide UMAP 시각화 스크립트 (Hist2Cell 3 + DINOv2)
-├── umap_output/         # UMAP PNG 4장 + summary.md (해석)
+├── umap_compare.py      # 4 rep × 3 slide UMAP 시각화 (1×4 per-slide + cross-slide)
+├── umap_subtype_grid.py # 3×4 grid + Epi/Stro subtype 색칠 (cached embedding 재사용)
+├── umap_output/         # UMAP PNG (per_slide ×3, cross_slide, grid ×3) + embeddings/ + summary.md
 ├── compare_hist2cell_vs_dinov2.py  # 정량 metric (1-NN purity / kNN overlap / silhouette)
 └── compare_output/      # metrics.csv + metrics_bars.png + summary.md
 ```
