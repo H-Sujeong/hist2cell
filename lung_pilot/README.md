@@ -31,7 +31,9 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 | ① Tiling | ✅ 완료 | `tilitng_output/224/TCGA-LUAD/`, `tilitng_output/112/` |
 | ② Graph (`.pt`) | ✅ 완료 | `graph_output/224/`, `graph_output/112/` |
 | ③ Inference | ✅ 완료 (2026-05-24, predictions + features) | `inference_output/<slide>/predictions.{csv,npy}` + `features_resnet.npy` + `features_fused.npy` |
-| ④ Hist2Cell UMAP 비교 | ✅ 완료 (2026-05-24, baseline) | `umap_output/` (4 PNG + `summary.md`) |
+| ④ Hist2Cell UMAP baseline | ✅ 완료 (2026-05-24) | `umap_output/` (초기 4 PNG + `summary.md`) |
+| ⑤ DINOv2 ViT-B/14 추론 | ✅ 완료 (2026-05-25) | `dino_output/<slide>/features_dinov2.npy` [N,768] |
+| ⑥ UMAP 4 rep 비교 (Hist2Cell × 3 + DINOv2) | ✅ 완료 (2026-05-25) | `umap_output/` PNG 재생성 + `summary.md` 갱신 |
 
 ## 폴더 구조
 ```
@@ -44,7 +46,9 @@ lung_pilot/
 │   ├── 112/             # <slide>.pt (HEX 입력) + <slide>_spots.csv
 │   └── README.md        # .pt 포맷·로드법·주의
 ├── inference_output/    # Hist2Cell 추론 결과 — <slide>/{predictions.{csv,npy}, features_resnet.npy [N,512], features_fused.npy [N,256]} + _logs/
-├── umap_compare.py      # 3 rep × 3 slide UMAP 시각화 스크립트
+├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
+├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
+├── umap_compare.py      # 4 rep × 3 slide UMAP 시각화 스크립트 (Hist2Cell 3 + DINOv2)
 └── umap_output/         # UMAP PNG 4장 + summary.md (해석)
 ```
 세부 문서: 각 `tilitng_output/*/tiling_summary.md`, `graph_output/README.md`.
@@ -83,27 +87,62 @@ done
 (`infer.py` 의 `Hist2Cell.forward(..., return_features=True)` 가 두 feature 를 함께 반환,
 worker 가 shard 에 저장 → main 이 `features_{resnet,fused}.npy` 로 머지.)
 
-## ④ Hist2Cell UMAP baseline (2026-05-24 완료)
+## ⑤ DINOv2 ViT-B/14 — 외부 self-supervised baseline (2026-05-25)
 
-3 representation × 3 슬라이드 UMAP + cross-slide combined UMAP 4장 생성.
-요약과 해석: **`umap_output/summary.md`** (PNG 임베드 + 캡션).
+같은 224 patch 에 DINOv2 ViT-B/14 (CLS, 768-d) 를 통과시켜 외부 모델의
+visual representation 도 비교 대상에 포함. 외부 코드/가중치 (**git ignore
+처리, 직접 다운로드 필요**):
 
-주요 관찰 (요약 — 자세한 건 summary.md 참조):
+- 코드: `external/dinov2/` (= facebookresearch/dinov2 clone; `dino_infer.py` 의 default)
+  ```bash
+  git clone https://github.com/facebookresearch/dinov2.git external/dinov2
+  # 또는 zip:
+  # wget https://github.com/facebookresearch/dinov2/archive/refs/heads/main.zip -O /tmp/dinov2.zip
+  # unzip -q /tmp/dinov2.zip -d external/ && mv external/dinov2-main external/dinov2
+  ```
+- 가중치: `/home/sjhong/dinov2_vitb14_pretrain.pth` (~330 MB, 절대경로 default)
+  ```bash
+  wget https://dl.fbaipublicfiles.com/dinov2/dinov2_vitb14/dinov2_vitb14_pretrain.pth \
+    -O /home/sjhong/dinov2_vitb14_pretrain.pth
+  ```
+- xformers 없는 환경에서 fallback attention 으로 동작 (warning 만)
+- 4× A5000 DataParallel, 3 슬라이드 합쳐 ~25 s
 
-- `prediction_log1p` (80-d) — cross-slide 에서 3 슬라이드가 거의 완전히
-  섞임 → cell-type 공간은 tissue-generic. HEX 비교 시 가장 깨끗한 baseline.
-- `features_fused` (256-d) — 부분적 슬라이드별 cluster (중간 batch). graph
-  context 반영.
-- `features_resnet` (512-d) — 슬라이드별 강한 분리. raw visual 이 stain
-  /모폴로지 차이를 직접 반영 → batch-sensitive.
+추론 명령 (참고):
+```bash
+cd /home/sjhong/hist2cell
+for s in TCGA-05-4245-01A-01-BS1 TCGA-05-4245-01A-01-TS1 TCGA-05-4390-01A-01-BS1; do
+  .venv/bin/python lung_pilot/dino_infer.py \
+    --data   lung_pilot/graph_output/224/$s.pt \
+    --output lung_pilot/dino_output/$s
+done
+```
+
+## ⑥ UMAP 4 rep 비교 (2026-05-25 완료)
+
+Hist2Cell 3 rep (`prediction_log1p` / `features_fused` / `features_resnet`)
++ DINOv2 (`features_dinov2`) = **총 4 representation** 으로 cross-slide
++ per-slide UMAP 재생성. 해석: **`umap_output/summary.md`**.
+
+주요 관찰 (요약):
+
+- **prediction_log1p** (Hist2Cell, 80-d) — 3 슬라이드 거의 완전 섞임 → tissue-generic.
+- **features_fused** (Hist2Cell, 256-d) — 부분 batch.
+- **features_resnet** (Hist2Cell, 512-d) — 슬라이드별 강한 분리. raw visual 의 batch.
+- **features_dinov2** (DINOv2, 768-d) — Hist2Cell ResNet 보다는 약하지만 여전히
+  부분 slide-separation. self-supervised 라 cell-type cluster 는 약하고,
+  manifold 가 morphology/stain 축으로 정리됨.
+
+→ HEX 결과가 도착하면 `prediction_log1p ↔ HEX expression`, `features_dinov2 ↔
+HEX 측 DINO` 짝이 가장 자연스러운 대응.
 
 ## 다음 단계
 
-1. **HEX / DINO** (repo 외부 모델, 사용자 측) — `graph_output/112/*.pt` 입력.
-   HEX expression + DINO 벡터가 도착하면 본 framework 와 동일한 cross-slide
-   + per-slide UMAP 생성 후 Hist2Cell 결과와 직접 비교.
+1. **HEX expression** (외부, 사용자 측) — `graph_output/112/*.pt` 입력.
+   도착하면 본 framework 에 5번째 rep 으로 추가 비교.
 2. (선택) 정량 metric — slide 1-NN purity / kNN overlap / Procrustes 로
-   두 모델 representation 정합성 측정.
+   representation 간 / 모델 간 정합성 측정.
+3. (선택) DINOv2 다른 사이즈 (ViT-S, ViT-L) 비교.
 
 ## 주의
 - TCGA-LUAD 는 native 20× — 112→224 업샘플 패치는 면적(56µm)만 맞고 해상도는 OOD.
