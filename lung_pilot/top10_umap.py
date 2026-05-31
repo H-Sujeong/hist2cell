@@ -30,6 +30,9 @@ INFER_DIR = ROOT / "lung_pilot" / "inference_output"
 EMB_DIR = ROOT / "lung_pilot" / "umap_output" / "embeddings"
 OUT_DIR = ROOT / "lung_pilot" / "top10_output"
 
+# umap_subtype_grid.py / umap_compare.py 와 동일 (deterministic) — 좌표 일치 보장
+UMAP_KW = dict(n_neighbors=15, min_dist=0.1, metric="euclidean", random_state=42)
+
 SLIDES = [
     "TCGA-05-4245-01A-01-BS1",
     "TCGA-05-4245-01A-01-TS1",
@@ -47,7 +50,15 @@ def load_slide(s):
     df = pd.read_csv(INFER_DIR / s / "predictions.csv")
     ct_cols = [c for c in df.columns if c not in ("spot_id", "X", "Y")]
     pred = np.load(INFER_DIR / s / "predictions.npy")
-    emb = np.load(EMB_DIR / f"{s}_prediction_log1p_umap2d.npy")
+    cache = EMB_DIR / f"{s}_prediction_log1p_umap2d.npy"
+    if cache.exists():
+        emb = np.load(cache)
+    else:  # 캐시 없으면 동일 UMAP_KW 로 생성 (per_slide PNG 와 좌표 일치)
+        import umap
+        EMB_DIR.mkdir(parents=True, exist_ok=True)
+        print(f"  [umap] {s} prediction_log1p 임베딩 생성 → {cache}")
+        emb = umap.UMAP(**UMAP_KW).fit_transform(np.log1p(pred))
+        np.save(cache, emb)
     return dict(df=df, ct_cols=ct_cols, pred=pred, emb=emb)
 
 
@@ -85,6 +96,16 @@ def plot_top10_overlay(slide, payload, top10_types, out_path):
 
 
 def main():
+    global INFER_DIR, EMB_DIR, OUT_DIR
+    import argparse
+    ap = argparse.ArgumentParser(description="Slide-별 TOP10 (경로 미지정 시 224 기본)")
+    ap.add_argument("--infer-dir", default=str(INFER_DIR))
+    ap.add_argument("--emb-dir", default=str(EMB_DIR))
+    ap.add_argument("--out-dir", default=str(OUT_DIR))
+    a = ap.parse_args()
+    INFER_DIR, EMB_DIR, OUT_DIR = Path(a.infer_dir), Path(a.emb_dir), Path(a.out_dir)
+    print(f"INFER={INFER_DIR}\nEMB={EMB_DIR}\nOUT={OUT_DIR}")
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     # 1. compute per-slide mean abundance + TOP10

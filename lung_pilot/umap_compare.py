@@ -132,6 +132,16 @@ def plot_cross_slide(payloads, slides, out_path):
 
 
 def main():
+    global INFER_DIR, DINO_DIR, OUT_DIR
+    import argparse
+    ap = argparse.ArgumentParser(description="UMAP 4-rep 비교 (경로 미지정 시 224 기본)")
+    ap.add_argument("--infer-dir", default=str(INFER_DIR))
+    ap.add_argument("--dino-dir", default=str(DINO_DIR))
+    ap.add_argument("--out-dir", default=str(OUT_DIR))
+    a = ap.parse_args()
+    INFER_DIR, DINO_DIR, OUT_DIR = Path(a.infer_dir), Path(a.dino_dir), Path(a.out_dir)
+    print(f"INFER={INFER_DIR}\nDINO={DINO_DIR}\nOUT={OUT_DIR}")
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     payloads = {s: load_slide(s) for s in SLIDES}
     ct_cols = payloads[SLIDES[0]]["ct_cols"]

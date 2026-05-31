@@ -16,20 +16,26 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 | TCGA-05-4245-01A-01-TS1 | `...-TS1.bf71c76b-e802-4a7a-b6c3-c5f46212fab0.svs` |
 | TCGA-05-4390-01A-01-BS1 | `...-BS1.38f2a7ef-442a-4fa6-acad-6e5d567bdcfd.svs` |
 
-## 224 vs 112 — 배율 매칭
-20× 슬라이드에서 224 px = **112 µm**, 112 px = **56 µm**.
+## 224 vs 146 — FOV(배율) 매칭
+20× 슬라이드(mpp 0.5015)에서 224 px = **112 µm**.
+HEX 학습 FOV = 224 px × **0.325 µm/px = 72.8 µm** → 0.5015 슬라이드에선 **146 px**(=73.2µm) crop 이 맞다.
+(동료 타일링이 146 px·overlap 0 으로 이미 일치.)
 
-| 타일 | 물리 크기 | 대상 모델 | 패치 처리 |
-|---|---|---|---|
-| **224** | 112 µm | Hist2Cell (20× 학습) | 224 px 그대로 |
-| **112** | 56 µm | HEX (40×·224 학습) | 112 px crop → 224 로 ×2 resize |
+| 타일 | 물리 FOV | resize 후 eff. mpp | 대상 모델 | 패치 처리 |
+|---|---|---|---|---|
+| **224** | 112 µm | 0.5015 (native) | Hist2Cell (20× 학습) | 224 px 그대로 |
+| **146** | 73.2 µm | **0.327 ≈ HEX 0.325** | HEX (학습 mpp 0.325) | 146 px crop → 224 로 ×1.53 resize |
+
+> **정정 (2026-05-29)**: HEX 학습 mpp 가 **0.325** 로 확인 → 기존 112px(56µm·40×0.25 가정) 폐기.
+> 기존 `graph_output/112`·`tilitng_output/112` 삭제, 동료 146 타일링으로 `graph_output/146` 재생성.
+> 슬라이드 native 0.5015 > 0.325 라 146→224 는 보간 업샘플 — FOV 는 맞지만 해상도는 여전히 OOD.
 
 ## 파이프라인 상태
 
 | 단계 | 상태 | 위치 |
 |---|---|---|
-| ① Tiling | ✅ 완료 | `tilitng_output/224/TCGA-LUAD/`, `tilitng_output/112/` |
-| ② Graph (`.pt`) | ✅ 완료 | `graph_output/224/`, `graph_output/112/` |
+| ① Tiling | ✅ 완료 | `tilitng_output/224/TCGA-LUAD/`, `tilitng_output/146/` (HEX, 동료 제공) |
+| ② Graph (`.pt`) | ✅ 완료 | `graph_output/224/`, `graph_output/146/` (2026-05-29 FOV 정정) |
 | ③ Inference | ✅ 완료 (2026-05-24, predictions + features) | `inference_output/<slide>/predictions.{csv,npy}` + `features_resnet.npy` + `features_fused.npy` |
 | ④ Hist2Cell UMAP baseline | ✅ 완료 (2026-05-24) | `umap_output/` (초기 4 PNG + `summary.md`) |
 | ⑤ DINOv2 ViT-B/14 추론 | ✅ 완료 (2026-05-25) | `dino_output/<slide>/features_dinov2.npy` [N,768] |
@@ -38,18 +44,26 @@ TCGA-LUAD H&E 슬라이드 3장에 **두 모델**을 돌려 cell-type 표현을 
 | ⑧ 3×4 UMAP grid + Epi/Stro subtype 색칠 | ✅ 완료 (2026-05-26) | `umap_output/per_slide_grid_{lineage,epithelial,stromal}.png` + `embeddings/` cache |
 | ⑨ Batch metric 정정 (size-weighted chance + balanced subsample UMAP) | ✅ 완료 (2026-05-26) | `compare_output/metrics_corrected.csv` + `umap_output/cross_slide_balanced.png` |
 | ⑩ Slide-별 TOP10 cell type 통계 + UMAP overlay | ✅ 완료 (2026-05-26) | `top10_output/` (`top10_stats.csv` + `top10_union.csv` + per-slide PNG × 3 + `summary.md`) |
+| ⑪ HEX FOV 정정(146px) + 146-grid Hist2Cell·DINOv2·UMAP·TOP10 | ✅ 완료 (2026-05-29) | `graph_output/146/` + `inference_output_146/` + `dino_output_146/` + `umap_output_146/` (4 PNG + `summary.md`) + `top10_output_146/` (stats/union CSV + 3 PNG + `summary.md`) |
+| ⑫ DINO cluster(=dominant ct) 패치 grid + 4-rep UMAP overlay (224·146) | ✅ 완료 (2026-05-29) | `dino_cluster_output/{224,146}/` (umap_4rep_by_dominant_ct.png + cluster_NN_*.png + dino_clusters_*.csv) + `summary.md` |
 
 ## 폴더 구조
 ```
 lung_pilot/
 ├── tilitng_output/
 │   ├── 224/TCGA-LUAD/   # 224 타일: <slide>.h5 + Thumbnails/Masks/Overlays + tiling_summary.md
-│   └── 112/             # 112 타일: 동일 구조 + tiling_summary.md
+│   └── 146/             # 146 타일 (HEX·73.2µm, 동료 제공): <slide>.h5 + Overlays
 ├── graph_output/
 │   ├── 224/             # <slide>.pt (Hist2Cell 입력) + <slide>_spots.csv
-│   ├── 112/             # <slide>.pt (HEX 입력) + <slide>_spots.csv
+│   ├── 146/             # <slide>.pt (HEX 입력, 146→224 resize) + <slide>_spots.csv
 │   └── README.md        # .pt 포맷·로드법·주의
-├── inference_output/    # Hist2Cell 추론 결과 — <slide>/{predictions.{csv,npy}, features_resnet.npy [N,512], features_fused.npy [N,256]} + _logs/
+├── inference_output/    # Hist2Cell 추론 결과 (224 grid) — <slide>/{predictions.{csv,npy}, features_resnet.npy [N,512], features_fused.npy [N,256]} + _logs/
+├── inference_output_146/ # Hist2Cell 추론 (146 grid, HEX FOV 73.2µm·OOD) — 동일 구조
+├── dino_output_146/     # DINOv2 (146 grid) — <slide>/features_dinov2.npy [N,768]
+├── umap_output_146/     # 146-grid 4-rep UMAP (per_slide ×3 + cross_slide) + embeddings/ + summary.md
+├── top10_output_146/    # 146-grid Slide-별 TOP10 (stats/union CSV + 3 PNG + summary.md)
+├── dino_cluster_patches.py # DINO cluster(=dominant ct) centroid 최근접 패치 grid + 4-rep UMAP overlay
+├── dino_cluster_output/  # {224,146}/ umap_4rep_by_dominant_ct.png + cluster_NN_*.png + dino_clusters_*.csv + summary.md
 ├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
 ├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
 ├── umap_compare.py      # 4 rep × 3 slide UMAP 시각화 (1×4 per-slide + cross-slide)
@@ -65,11 +79,11 @@ lung_pilot/
 
 ## 타일 / 노드 수
 
-| 슬라이드 | 224 | 112 |
+| 슬라이드 | 224 (Hist2Cell) | 146 (HEX, 동료 grid) |
 |---|---|---|
-| TCGA-05-4245-01A-01-BS1 | 2,869 | 11,470 |
-| TCGA-05-4245-01A-01-TS1 | 1,871 | 7,499 |
-| TCGA-05-4390-01A-01-BS1 | 10,661 | 42,615 |
+| TCGA-05-4245-01A-01-BS1 | 2,869 | 6,020 |
+| TCGA-05-4245-01A-01-TS1 | 1,871 | 4,257 |
+| TCGA-05-4390-01A-01-BS1 | 10,661 | 24,462 |
 
 ## 추론 결과 (2026-05-24 완료, features 포함 재추론)
 
@@ -170,7 +184,7 @@ rep 의 순위 (fused > dinov2 > resnet > prediction) 는 유지. 특히
 
 ## 다음 단계
 
-1. **HEX expression** (외부, 사용자 측) — `graph_output/112/*.pt` 입력.
+1. **HEX expression** (외부, 사용자 측) — `graph_output/146/*.pt` 입력 (FOV 73.2µm, eff. mpp 0.327 ≈ HEX 0.325).
    도착하면 4 rep UMAP 와 정량 비교 framework 에 5번째 rep 으로 추가.
    본 figure 의 `features_dinov2` 가 HEX 의 DINO 블록 baseline 역할.
 2. (선택) **정확한 chance baseline** — slide-size 가중 1-NN purity baseline
@@ -180,12 +194,13 @@ rep 의 순위 (fused > dinov2 > resnet > prediction) 는 유지. 특히
    abundance 자체의 inter-spot Spearman correlation 등.
 
 ## 주의
-- TCGA-LUAD 는 native 20× — 112→224 업샘플 패치는 면적(56µm)만 맞고 해상도는 OOD.
-  HEX 출력·UMAP 해석 시 명시할 것.
+- TCGA-LUAD 는 native 20× (mpp 0.5015) — 146→224 업샘플 패치는 FOV(73.2µm)는 HEX 학습과 맞으나
+  해상도는 여전히 OOD (0.5015→0.327 보간). HEX 출력·UMAP 해석 시 명시할 것.
 - `.pt` 로드: `torch.load(..., weights_only=False)` (spot_id 가 python list).
-  `graph_output/112/TCGA-05-4390-01A-01-BS1.pt` 는 24 GB — 메모리 여유 확보.
-- 224 ↔ 112 그리드 center 불일치 (224 중심 = coord+112, 112 중심 = coord+56).
-  spot 단위 paired 비교가 필요하면 공유 center 에서 두 크기 패치를 추출해야 한다.
+  `graph_output/146/TCGA-05-4390-01A-01-BS1.pt` 는 14.7 GB — 메모리 여유 확보.
+- 224 ↔ 146 그리드 center 불일치 (224 중심 = coord+112, 146 중심 = coord+73).
+  146 grid 는 동료 타일링과 1:1 정합(centers == coords+73 검증) → HEX expression spot 대응.
+  224↔146 spot 단위 paired 비교가 필요하면 공유 center 에서 두 크기 패치를 추출해야 한다.
 - concat→UMAP 시 HEX·DINO 블록은 스케일·차원이 다르므로 **블록별 정규화/PCA** 후 concat.
 - 코드: 타일링 `WSI_tile_sampling_framework/run_tiling_tcga_luad.py`,
   그래프 `prep/build_graph_from_tiles.py`, 추론 `inference/infer.py`.
