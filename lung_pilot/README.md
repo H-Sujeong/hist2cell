@@ -50,6 +50,7 @@ HEX 학습 FOV = 224 px × **0.325 µm/px = 72.8 µm** → 0.5015 슬라이드�
 | ⑭ dominant cell type 별 대표 패치 montage + 조직학 가이드 (224·146) | ✅ 완료 (2026-06-01) | `celltype_examples_{224,146}/` (montage PNG + csv + summary). prediction centroid 최근접 예시 |
 | ⑮ Visium human lung GT 셋 3장 + DINO 추론 (hex 결정평가용) | ✅ 완료 (2026-06-01) | `visium_gt/` (dino_output/ + hist2cell_output/ + gt/ 80celltype + README) |
 | ⑯ GT vs Hist2Cell vs DINO 비교 (실제 GT 기준, circular 아님) | ✅ 완료 (2026-06-01) | `visium_gt/compare/` (purity/accuracy csv + umap + summary). Hist2Cell≈GT, DINO 는 gap −0.12~−0.29 → hex 채울 여지 실재. HEX feature(FOV 재crop) 대기 |
+| ⑰ dino→19dim(PCA/중요도) 축소 후 hex 비교 (224·146) | ✅ 완료 (2026-06-01) | `hex_dino19_{224,146}/` (purity csv + umap + summary). 차원 맞추니 hex 가 dino 와 대등(224)/우세(146) — 이전 "hex 무의미" 는 차원지배 아티팩트 |
 
 ## 폴더 구조
 ```
@@ -76,6 +77,9 @@ lung_pilot/
 ├── celltype_examples_146/ # 15 cell type 예시 montage + csv + summary(224 대비 FOV 차이)
 ├── visium_gt_compare.py  # Visium GT vs Hist2Cell vs DINO 비교 (실제 GT 기준)
 ├── visium_gt/            # Visium human lung GT 평가셋 (README + gt/ + dino_output/ + hist2cell_output/ + compare/)
+├── hex_dino19_compare.py # dino 768→19(PCA/중요도) 축소 후 hex 비교 (차원 지배 보수)
+├── hex_dino19_{224,146}/ # 224·146 결과 (knn_purity{,_pivot}.csv + umap + summary)
+│   # HEX 추출 코드: hex_inference.ipynb + model_hex_compgat_clpg_cv.py (입력=Optimus 1536-d → 19 marker)
 ├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
 ├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
 ├── umap_compare.py      # 4 rep × 3 slide UMAP 시각화 (1×4 per-slide + cross-slide)
