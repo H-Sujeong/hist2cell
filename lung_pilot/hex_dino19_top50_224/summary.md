@@ -5,6 +5,20 @@ hex19 각 패치(행)에서 **중앙값 미만(하위 50%, 19개 중 9개)을 0*
 앞 denoise(하위 10%→0)보다 공격적. 컬럼: hist2cell·PCA(dino19)·hex(top50)·pca+hex(top50).
 purity 표엔 원본(hex_orig, pca+hex_orig)도 포함. 라벨=dominant cell type(argmax pred).
 
+## 전체 경과 한눈에 (hex19 처리 단계별 UMAP)
+
+![flow](flow_overview.png)
+
+hex19 를 처리하며 관찰된 경과 (224, 4390-BS1, 색=dominant cell type):
+1. **dino768 ⊕ hex19 (787-d)** — hex 가 전체 차원의 2.4% 라 dino 에 묻혀 **cell-type 영향 거의 없음**.
+2. **19-d 로 맞춤 (hex19 단독)** — 차원을 맞추니 hex 자체 구조(호)가 보이고 **dino 와 대등한 cell-type 기여 (Q1=YES)**.
+3. **hex19 하위 10% → 0 (denoise)** — 저신호 marker 를 0 으로 만들면 "어느 marker 가 남나"가 이산 sparsity
+   패턴이 되어 **섬(islands) 모양 군집** 출현. *단 purity 는 불변 → 모양 ≠ 정보.*
+4. **hex19 상위 50%만 사용** — 더 많이(9/19) 0 처리 → **더 강하게 분절·일부 cell type 끼리 밀집**.
+   *단 purity 는 약손해 → 자를수록 손해 쪽.*
+
+> flow 이미지 캡션은 한글 폰트 부재로 영문. 정량 수치·한계는 아래 표와 "정직한 한계" 절 참고.
+
 ## kNN purity (k=10) — 상위50% 영향
 
 **224**
