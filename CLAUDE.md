@@ -48,3 +48,8 @@ WSI(.svs) → **tile → graph(.pt) → inference → analysis** 파이프라인
 ## 진행 중 작업
 - **`lung_pilot/`** — TCGA-LUAD 3장 pilot (Hist2Cell vs HEX 모델 비교).
   단계별 상태·다음 단계·산출물 위치는 **`lung_pilot/README.md`** 참조
+- **⚠️ HEX 분석 무효화 (2026-06-01)**: 동료 HEX 추출 결함 → 모든 hex 분석을
+  `lung_pilot/_archive_invalid_hex/` 로 아카이브(결론 인용 금지). 교정 HEX(agg, 224·146) 도착 시
+  `lung_pilot/run_hex_analysis.sh <label> <infer> <dino> <agg>` 로 동일 분석 재실행 (절차 `lung_pilot/HEX_RERUN.md`).
+  방법론(Q1/Q2, chance=∑pᵢ², dino768→19 축소)은 유효.
+  → **교정 분석 완료·검증되면 `_archive_invalid_hex/` 삭제 + 본 무효 안내 줄 제거할 것.**
