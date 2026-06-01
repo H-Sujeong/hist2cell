@@ -46,6 +46,8 @@ HEX 학습 FOV = 224 px × **0.325 µm/px = 72.8 µm** → 0.5015 슬라이드�
 | ⑩ Slide-별 TOP10 cell type 통계 + UMAP overlay | ✅ 완료 (2026-05-26) | `top10_output/` (`top10_stats.csv` + `top10_union.csv` + per-slide PNG × 3 + `summary.md`) |
 | ⑪ HEX FOV 정정(146px) + 146-grid Hist2Cell·DINOv2·UMAP·TOP10 | ✅ 완료 (2026-05-29) | `graph_output/146/` + `inference_output_146/` + `dino_output_146/` + `umap_output_146/` (4 PNG + `summary.md`) + `top10_output_146/` (stats/union CSV + 3 PNG + `summary.md`) |
 | ⑫ DINO cluster(=dominant ct) 패치 grid + 4-rep UMAP overlay (224·146) | ✅ 완료 (2026-05-29) | `dino_cluster_output/{224,146}/` (umap_4rep_by_dominant_ct.png + cluster_NN_*.png + dino_clusters_*.csv) + `summary.md` |
+| ⑬ hex+dino vs dino vs prediction 3×3 UMAP + kNN purity (224) | ✅ 완료 (2026-06-01) | `hex_compare_224/` (umap_3x3 + knn_purity{,_weighting}.csv + summary.md). 가설(hex+dino>dino) 미지지 — 단 라벨=Hist2Cell visual 한계 |
+| ⑭ dominant cell type 별 대표 패치 montage + 조직학 가이드 (224·146) | ✅ 완료 (2026-06-01) | `celltype_examples_{224,146}/` (montage PNG + csv + summary). prediction centroid 최근접 예시 |
 
 ## 폴더 구조
 ```
@@ -64,6 +66,12 @@ lung_pilot/
 ├── top10_output_146/    # 146-grid Slide-별 TOP10 (stats/union CSV + 3 PNG + summary.md)
 ├── dino_cluster_patches.py # DINO cluster(=dominant ct) centroid 최근접 패치 grid + 4-rep UMAP overlay
 ├── dino_cluster_output/  # {224,146}/ umap_4rep_by_dominant_ct.png + cluster_NN_*.png + dino_clusters_*.csv + summary.md
+├── hex_compare.py        # prediction vs dino vs hex+dino 3×3 UMAP + kNN purity (경로 인자형)
+├── hex_compare_224/      # 224 비교 (umap_3x3 + knn_purity{,_weighting}.csv + summary.md)
+│   # 입력 dino/agg = /mnt/fileserver/lung_pilot/{dino_output,dino_hex_agg} (agg=dino768⊕hex19)
+├── celltype_examples.py  # dominant cell type 별 prediction centroid 최근접 대표 패치 (경로 인자형)
+├── celltype_examples_224/ # 18 cell type 예시 montage + csv + summary(폐 조직학 가이드)
+├── celltype_examples_146/ # 15 cell type 예시 montage + csv + summary(224 대비 FOV 차이)
 ├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
 ├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
 ├── umap_compare.py      # 4 rep × 3 slide UMAP 시각화 (1×4 per-slide + cross-slide)
@@ -202,6 +210,11 @@ rep 의 순위 (fused > dinov2 > resnet > prediction) 는 유지. 특히
   146 grid 는 동료 타일링과 1:1 정합(centers == coords+73 검증) → HEX expression spot 대응.
   224↔146 spot 단위 paired 비교가 필요하면 공유 center 에서 두 크기 패치를 추출해야 한다.
 - concat→UMAP 시 HEX·DINO 블록은 스케일·차원이 다르므로 **블록별 정규화/PCA** 후 concat.
+  실측: agg=[dino768 ⊕ hex19], hex 블록 per-dim std 가 dino 의 ~100배(157~5625) → raw 면 hex 가 거리 지배.
+  `hex_compare.py` 는 per-dim z-score 적용. (hex_compare_224/summary.md 참고)
+- **fileserver agg 버그**: `/mnt/fileserver/lung_pilot/dino_hex_agg_146/TCGA-05-4245-01A-01-TS1/features_agg.npy`
+  가 N=24462(4390 것) — TS1(4257) 자리에 잘못 들어감. 146 hex+dino 비교 전 **TS1 agg 재생성 필요**.
+  (224 의 dino_output·dino_hex_agg 는 3슬라이드 모두 N 정상.)
 - 코드: 타일링 `WSI_tile_sampling_framework/run_tiling_tcga_luad.py`,
   그래프 `prep/build_graph_from_tiles.py`, 추론 `inference/infer.py`.
   타일링 how-to 는 `report/05_*`.
