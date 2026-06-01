@@ -50,6 +50,12 @@ def knn_purity(X, lab, k=10):
     return float((lab[idx[:, 1:]] == lab[:, None]).mean())
 
 
+def chance_baseline(lab):
+    """size-weighted random baseline = ∑ pᵢ² (이웃을 라벨분포대로 무작위 추출 시 동일 라벨 기대비율)."""
+    n = len(lab); p = np.array(list(Counter(lab).values())) / n
+    return float((p ** 2).sum())
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--infer-dir", required=True)
@@ -103,8 +109,11 @@ def main():
     for name, X in REPS.items():
         for s in SLIDES:
             mask = slide == s
+            p = knn_purity(X[mask], dom[mask]); ch = chance_baseline(dom[mask])
             rows.append({"slide": short(s), "rep": name, "dim": X.shape[1],
-                         "knn_purity_k10": round(knn_purity(X[mask], dom[mask]), 4)})
+                         "knn_purity_k10": round(p, 4),
+                         "chance": round(ch, 4),            # Q1: ∑pᵢ² baseline
+                         "excess": round(p - ch, 4)})       # Q1: purity − chance
     pur = pd.DataFrame(rows)
     pur.to_csv(OUT / "knn_purity.csv", index=False)
     piv = pur.pivot(index="rep", columns="slide", values="knn_purity_k10")

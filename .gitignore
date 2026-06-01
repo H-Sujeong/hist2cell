@@ -86,3 +86,6 @@ logs/
 
 # Notion 업로드 유틸(로컬 전용)
 upload-to-notion.js
+node_modules/
+package.json
+package-lock.json

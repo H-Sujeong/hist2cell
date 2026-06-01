@@ -46,13 +46,12 @@ HEX 학습 FOV = 224 px × **0.325 µm/px = 72.8 µm** → 0.5015 슬라이드�
 | ⑩ Slide-별 TOP10 cell type 통계 + UMAP overlay | ✅ 완료 (2026-05-26) | `top10_output/` (`top10_stats.csv` + `top10_union.csv` + per-slide PNG × 3 + `summary.md`) |
 | ⑪ HEX FOV 정정(146px) + 146-grid Hist2Cell·DINOv2·UMAP·TOP10 | ✅ 완료 (2026-05-29) | `graph_output/146/` + `inference_output_146/` + `dino_output_146/` + `umap_output_146/` (4 PNG + `summary.md`) + `top10_output_146/` (stats/union CSV + 3 PNG + `summary.md`) |
 | ⑫ DINO cluster(=dominant ct) 패치 grid + 4-rep UMAP overlay (224·146) | ✅ 완료 (2026-05-29) | `dino_cluster_output/{224,146}/` (umap_4rep_by_dominant_ct.png + cluster_NN_*.png + dino_clusters_*.csv) + `summary.md` |
-| ⑬ hex+dino vs dino vs prediction 3×3 UMAP + kNN purity (224·146) | ✅ 완료 (2026-06-01) | `hex_compare_{224,146}/` (umap_3x3 + knn_purity{,_weighting}.csv + summary.md). 결과 **해상도 의존**: 224 미지지, 146(OOD) 2/3 슬라이드 부분 지지. TS1 agg 버그 정정 확인 |
+| ⑬ hex+dino vs dino 3×3 UMAP + kNN purity | ❌ **무효(HEX 결함)** | `_archive_invalid_hex/hex_compare_{224,146}/`. 교정 HEX 도착 시 재실행 → `HEX_RERUN.md` |
 | ⑭ dominant cell type 별 대표 패치 montage + 조직학 가이드 (224·146) | ✅ 완료 (2026-06-01) | `celltype_examples_{224,146}/` (montage PNG + csv + summary). prediction centroid 최근접 예시 |
 | ⑮ Visium human lung GT 셋 3장 + DINO 추론 (hex 결정평가용) | ✅ 완료 (2026-06-01) | `visium_gt/` (dino_output/ + hist2cell_output/ + gt/ 80celltype + README) |
 | ⑯ GT vs Hist2Cell vs DINO 비교 (실제 GT 기준, circular 아님) | ✅ 완료 (2026-06-01) | `visium_gt/compare/` (purity/accuracy csv + umap + summary). Hist2Cell≈GT, DINO 는 gap −0.12~−0.29 → hex 채울 여지 실재. HEX feature(FOV 재crop) 대기 |
-| ⑰ dino→19dim(PCA/중요도) 축소 후 hex 비교 (224·146) | ✅ 완료 (2026-06-01) | `hex_dino19_{224,146}/` (purity csv + umap + summary). 차원 맞추니 hex 가 dino 와 대등(224)/우세(146) — 이전 "hex 무의미" 는 차원지배 아티팩트 |
-| ⑱ hex19 패치별 하위10%→0(denoise) 후 비교 (224·146) | ✅ 완료 (2026-06-01) | `hex_dino19_denoise_{224,146}/`. purity 무영향(≤0.004), UMAP 모양만 호→분절(모양≠정보 실증) |
-| ⑲ hex19 패치당 상위50%만 유지(하위50%→0) 비교 (224·146) | ✅ 완료 (2026-06-01) | `hex_dino19_top50_{224,146}/`. hex 단독 약손해, 146 pca+hex 만 소폭↑(≤0.009) — 자를수록 손해 쪽 |
+| ⑰ dino→19dim 축소 후 hex 비교 / ⑱ denoise / ⑲ top50 | ❌ **무효(HEX 결함)** | `_archive_invalid_hex/hex_dino19_{,denoise_,top50_}{224,146}/`. 재실행 → `HEX_RERUN.md` |
+| ⑳ HEX 결함 발견 → HEX 분석 무효·아카이브 + 재실행 도구 정비 | ✅ 완료 (2026-06-01) | `_archive_invalid_hex/` + `run_hex_analysis.sh` + `HEX_RERUN.md` (hex_dino19_compare.py 에 Q1 chance/excess 추가). 무관 결과(⑭~⑯)는 유지 |
 
 ## 폴더 구조
 ```
@@ -71,19 +70,19 @@ lung_pilot/
 ├── top10_output_146/    # 146-grid Slide-별 TOP10 (stats/union CSV + 3 PNG + summary.md)
 ├── dino_cluster_patches.py # DINO cluster(=dominant ct) centroid 최근접 패치 grid + 4-rep UMAP overlay
 ├── dino_cluster_output/  # {224,146}/ umap_4rep_by_dominant_ct.png + cluster_NN_*.png + dino_clusters_*.csv + summary.md
-├── hex_compare.py        # prediction vs dino vs hex+dino 3×3 UMAP + kNN purity (경로 인자형)
-├── hex_compare_{224,146}/ # 224·146 비교 (umap_3x3 + knn_purity{,_weighting}.csv + summary.md)
+├── hex_compare.py        # prediction vs dino vs hex+dino 3×3 UMAP + kNN purity (경로 인자형, 재사용)
+├── run_hex_analysis.sh   # ★교정 HEX 도착 시 4개 HEX 분석 일괄 재실행 (label/infer/dino/agg 인자)
+├── HEX_RERUN.md          # ★재실행 절차·입력가정·Q1/Q2/chance 정의
+├── _archive_invalid_hex/ # ❌무효(HEX 결함) hex_compare_/hex_dino19_/_denoise_/_top50_ {224,146} + 로그 + README
 │   # 입력 dino/agg = /mnt/fileserver/lung_pilot/{dino_output,dino_hex_agg}{,_146} (agg=dino768⊕hex19)
 ├── celltype_examples.py  # dominant cell type 별 prediction centroid 최근접 대표 패치 (경로 인자형)
 ├── celltype_examples_224/ # 18 cell type 예시 montage + csv + summary(폐 조직학 가이드)
 ├── celltype_examples_146/ # 15 cell type 예시 montage + csv + summary(224 대비 FOV 차이)
 ├── visium_gt_compare.py  # Visium GT vs Hist2Cell vs DINO 비교 (실제 GT 기준)
 ├── visium_gt/            # Visium human lung GT 평가셋 (README + gt/ + dino_output/ + hist2cell_output/ + compare/)
-├── hex_dino19_compare.py # dino 768→19(PCA/중요도) 축소 후 hex 비교 (차원 지배 보수)
-├── hex_dino19_{224,146}/ # 224·146 결과 (knn_purity{,_pivot}.csv + umap + summary)
-├── hex_dino19_denoise.py # hex19 패치별 하위 N%→0 denoise 변형 (--pct)
-├── hex_dino19_denoise_{224,146}/ # 하위10%→0 결과 (purity 무영향, 모양만 변화)
-├── hex_dino19_top50_{224,146}/   # 상위50%만 유지(--pct 50) 결과 (hex 단독 약손해)
+├── hex_dino19_compare.py # dino 768→19(PCA/중요도) 축소 후 hex 비교 + Q1 chance/excess (재사용)
+├── hex_dino19_denoise.py # hex19 패치별 하위 N%→0 / 상위(100-N)%만 변형 (--pct, 재사용)
+│   # ↑ HEX 결과 폴더(hex_dino19_*, *_denoise_*, *_top50_*)는 _archive_invalid_hex/ 로 이동(무효)
 │   # HEX 추출 코드: hex_inference.ipynb + model_hex_compgat_clpg_cv.py (입력=Optimus 1536-d → 19 marker)
 ├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
 ├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
