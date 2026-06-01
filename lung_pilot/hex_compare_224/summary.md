@@ -31,7 +31,14 @@ hex+dino(agg 768+19) = `/mnt/fileserver/lung_pilot/dino_hex_agg`. (224 grid, 3 �
   **일관되지 않고 미미**.
 - **hex_only(19d) 단독**: dino 보다 **오히려 낮음** (Δ −0.013/−0.027/−0.032, 3슬라이드 모두).
 
-## 결론 — 가설 **지지되지 않음** (224 in-domain, 이 지표 기준)
+## 결론 — **Q2(증분)** 만 지지 안 됨 (224, 768-d concat 지표 한정)
+
+> **Q1 / Q2 / chance 구분 (중요)**: **Q1** = hex *자체* 가 cell type 으로 뭉치나(그 rep 단독 purity 의
+> **chance=∑ᵢpᵢ² 대비 excess**; chance = 이웃을 라벨분포대로 무작위 추출 시 같은 cell type 일 기대확률).
+> **Q2** = hex 가 dino 에 *추가* 보탬을 주나(**purity(dino+hex) − purity(dino)**).
+> 이 summary 의 "지지 안 됨"은 **Q2 만**, 그것도 **dino 768차원이 hex 19차원(2.4%)을 압도한 상태**의 결과다.
+> **Q1(hex 단독이 cell type 을 담나)은 강함** — 차원을 맞춘 `../hex_dino19_224/summary.md` 에서 hex19 단독
+> excess **+0.11~0.17**(dino19 와 대등) 확인. 아래는 Q2(증분) 한정 서술.
 
 방향(per-dim)은 일관되게 +였지만 **효과 크기가 ~1% 로 무의미**하고, 공정 가중(block-EQ)에서도
 3슬라이드 중 1개만 작게(+0.018) 올라 **재현성이 없다**. HEX 19-d 단독은 dino 보다 cell-type 응집이

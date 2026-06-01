@@ -25,6 +25,24 @@
 - **dino19+hex19 vs hex19**: BS1 만 +0.016, TS1·4390 은 **−0.004 / −0.016** → 약화된 dino 를 더하면
   오히려 hex 를 깎음. 즉 146 의 best 단일 rep = **hex19** (TS1·4390).
 
+## 용어 정의 — Q1 / Q2 / chance (224 summary 와 동일)
+
+- **Q1** = representation *자체* 가 cell type 으로 뭉치나 (rep 단독 purity 의 **chance 대비 excess**).
+- **Q2** = hex 가 dino 에 *추가* 정보를 주나 (**purity(dino+hex) − purity(dino)**).
+- **Q1 ≠ Q2**: Q1 강해도 Q2 작을 수 있음(dino·hex 신호 겹침).
+- **chance = ∑ᵢ pᵢ²** (size-weighted): 이웃을 라벨분포대로 무작위 추출 시 같은 cell type 일 기대확률.
+  쏠린 분포라 uniform 1/k 대신 ∑p² 사용. **excess = purity − chance** = 우연 넘은 실제 clustering.
+
+### Q1 결과 (146) — chance 대비 excess (dino19 = PCA)
+| slide | chance(∑p²) | hex19 excess | dino19 excess | prediction(ceiling) |
+|---|---|---|---|---|
+| 4245-BS1 | 0.342 | +0.100 | +0.108 | +0.368 |
+| 4245-TS1 | 0.284 | **+0.145** | +0.097 | +0.391 |
+| 4390-BS1 | 0.297 | **+0.101** | +0.048 | +0.414 |
+
+→ **146 에선 hex19 excess 가 dino19 를 추월**(TS1 +0.145 vs +0.097, 4390 +0.101 vs +0.048). 즉 좁은 FOV 로
+DINO morphology 가 약해진 곳에서 **hex 의 marker 정보가 cell type 을 더 잘 잡음 (Q1: hex ≥ dino)**.
+
 ## 224 vs 146 종합 (차원 보수 후 결론)
 
 | | 224 (in-domain, dino 강함) | 146 (OOD-FOV, dino 약함) |
@@ -39,8 +57,9 @@
    이전 768+19 concat 의 "hex 무의미" 는 **dino 차원 지배 아티팩트**였음이 확정.
 2. **결합(dino19+hex19)의 이득은 dino 품질에 의존**: dino 가 좋을 때(224)는 보완적(+0.02),
    dino 가 OOD 로 약할 때(146)는 redundant/방해 → hex 단독이 나음.
-3. 사용자 가설("hex 가 cell-type 정보 추가")은 **지지** — 단 "dino 위에 항상 더 좋아진다"가 아니라
-   "동등 차원이면 hex 가 충분히 경쟁력 있고, 저품질 dino 는 hex 가 대체"가 정확한 그림.
+3. **Q1(hex 가 cell type 을 담나) = YES**(146 은 hex ≥ dino, excess +0.10~0.15). **Q2(dino 에 추가 보탬)**
+   는 dino 품질 의존(146 OOD 에선 결합이 hex 단독을 못 넘음). 정확한 한 줄: "동등 차원이면 hex 가 cell-type
+   을 dino 만큼/그 이상 담고, 저품질 dino 는 hex 가 대체" — "dino+hex 가 항상 최고"가 아님.
 
 ## 정직한 한계 (224 와 공통)
 - 라벨 = argmax(Hist2Cell prediction) = **H&E-형태 유래** → 지표가 morphology 에 유리하게 편향.

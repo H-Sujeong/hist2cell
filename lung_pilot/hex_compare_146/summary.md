@@ -23,9 +23,13 @@ hex+dino(agg 768+19) = `/mnt/fileserver/lung_pilot/dino_hex_agg_146`.
 - **block-EQ (공정 가중)**: **TS1 +0.036, 4390 +0.027** 로 **의미있게 상승**, BS1 +0.007(flat).
 - **hex_only(19d)**: TS1·4390 에서 **dino 보다 높음**(+0.035, +0.033). BS1 만 −0.024.
 
-## 결론 — **224 와 상반: 146 에선 hex 가 2/3 슬라이드에서 도움**
+## 결론 — **224 와 상반: 146 에선 hex 의 *증분(Q2)* 도 2/3 슬라이드에서 도움**
 
-224(Hist2Cell in-domain)에선 hex 가 무의미했으나, **146 에선 block-EQ 로 TS1·4390 이 dino 대비
+> **Q1 / Q2 / chance**: **Q1** = hex 자체가 cell type 으로 뭉치나(rep 단독 purity 의 **chance=∑pᵢ² 대비 excess**).
+> **Q2** = hex 가 dino 에 *추가* 보탬을 주나(**purity(dino+hex)−purity(dino)**). 아래 "도움/무의미"는 **Q2**.
+> **Q1 은 둘 다 강하며 146 은 hex≥dino** (excess: 차원 맞춘 `../hex_dino19_146/summary.md` 참조).
+
+224 에선 hex 의 **증분(Q2)** 이 무의미했으나, **146 에선 block-EQ 로 TS1·4390 이 dino 대비
 +0.027~0.036, hex 단독도 dino 를 앞선다.** 가설(hex+dino > dino)이 **부분 지지**된다 — 단 BS1 은 예외라
 완전 일관은 아님.
 
@@ -56,7 +60,9 @@ cell-type purity 도 부분 상승**시킨 점이 224 와 다른 부분(위 표)
 - 224 와 동일한 구조적 한계(라벨=H&E-형태 유래 prediction → morphology 편향)도 그대로 적용.
 
 ## 종합 (224 + 146)
-- **in-domain(224)**: hex 추가 효과 **무의미**.
+- **Q1 (hex 가 cell type 을 담나)**: 두 해상도 모두 **YES** — hex 단독 purity 가 chance(∑p²) 대비 +0.10~0.17,
+  dino 와 대등(224)/우세(146). (정량은 `../hex_dino19_{224,146}/summary.md`.)
+- **Q2 (dino 에 추가 보탬)** in-domain(224): **무의미**(증분 한정).
 - **OOD-FOV(146)**: morphology 가 약해진 regime 에서 hex 가 **부분적으로 도움**(2/3 슬라이드, block-EQ).
 - 방향은 사용자 직관과 일부 부합하나, **라벨이 Hist2Cell 예측(특히 146 은 OOD)** 이라 확정 결론은
   실제 cell-type ground truth 가 있어야 가능.
