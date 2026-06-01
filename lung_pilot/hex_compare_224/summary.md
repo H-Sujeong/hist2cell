@@ -41,6 +41,20 @@ hex+dino(agg 768+19) = `/mnt/fileserver/lung_pilot/dino_hex_agg`. (224 grid, 3 �
 > hex 가 **2/3 슬라이드에서 도움**(block-EQ +0.027~0.036). 즉 효과가 **해상도 의존적** — morphology 가
 > 강한 in-domain(224)에선 무의미, 약한 OOD(146)에선 부분 보완. 단 146 은 라벨도 OOD라 더 조심.
 
+## hex 가 구조를 바꾸나 — GT-free kNN overlap (`knn_overlap_dino_vs_hexdino.csv`)
+
+"hex 19-d 더해도 안 바뀐다" 를 GT 없이 직접 측정: dino vs hex+dino 의 k=10 이웃집합 Jaccard 평균.
+
+| 가중 | overlap(dino~hexdino) | 해석 |
+|---|---|---|
+| **per-dim z (concat 그대로)** | **0.78~0.83** | 이웃 ~80% 동일 → hex 추가가 구조 거의 안 바꿈 |
+| **block-EQ (차원수 효과 제거)** | **0.19~0.26** | 이웃 ~20%만 공유 → 공정 가중하면 구조 크게 바뀜 |
+
+- **dino 는 768-d**(ViT-B/14 CLS; 512 는 `features_resnet`). agg=dino768⊕hex19 → hex 는 **19/787=2.4%**.
+  per-dim concat 에선 dino 차원수에 묻혀 사실상 무시됨 (위 overlap 0.8 이 그 증거).
+- block-EQ 로 차원수 효과를 빼면 hex 가 이웃구조를 확 바꾸지만(overlap 0.2), 그 변화가 **cell-type
+  purity 를 올린 건 146(OOD)뿐**(224 는 아님) → **hex 의 구조는 실재하나 Hist2Cell cell-type 과 대체로 직교**.
+
 ## ⚠️ 단, 지표의 구조적 한계 (negative 를 과신하지 말 것)
 - 여기서 **"cell type" = `prediction_log1p` 의 argmax (Hist2Cell dominant cell type)** 다.
   그리고 `prediction_log1p` 자체가 **Hist2Cell 이 H&E 패치(형태)에서 예측**한 값이다

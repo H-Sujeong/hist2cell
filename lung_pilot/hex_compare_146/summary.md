@@ -34,6 +34,18 @@ hex+dino(agg 768+19) = `/mnt/fileserver/lung_pilot/dino_hex_agg_146`.
 (dino purity 4390: 224 0.510 → 146 0.365). DINO 가 약해진 만큼 **HEX expression 블록이 상대적으로 더
 기여** → hex 가 도움이 되는 regime. 즉 "morphology 가 약할 때 expression 이 보완한다" 는 그림.
 
+## hex 가 구조를 바꾸나 — GT-free kNN overlap (`knn_overlap_dino_vs_hexdino.csv`)
+
+dino(768-d) vs hex+dino 의 k=10 이웃집합 Jaccard 평균 (agg=dino768⊕hex19, hex=2.4%):
+
+| 가중 | overlap(dino~hexdino) | 해석 |
+|---|---|---|
+| per-dim z (concat 그대로) | **0.76~0.84** | 이웃 ~80% 동일 → hex 추가가 구조 거의 안 바꿈 |
+| block-EQ (차원수 효과 제거) | **0.19~0.29** | 이웃 ~20%만 공유 → 공정 가중하면 크게 바뀜 |
+
+146 도 per-dim 에선 dino 차원수에 hex 가 묻힘. block-EQ 로 구조가 바뀌고, 그 변화가 **여기선(146 OOD)
+cell-type purity 도 부분 상승**시킨 점이 224 와 다른 부분(위 표).
+
 ## ⚠️ 146 특유의 해석 주의 (224 보다 더 조심)
 - **라벨이 OOD**: 여기 "cell type" = Hist2Cell 이 **146 OOD 입력**에서 낸 prediction 의 argmax.
   분포가 Ciliated+Muscle 에 ~73% 쏠려(앞 TOP10·celltype_examples_146 참조) 라벨 자체가 불안정.
