@@ -31,11 +31,15 @@ hex+dino(agg 768+19) = `/mnt/fileserver/lung_pilot/dino_hex_agg`. (224 grid, 3 �
   **일관되지 않고 미미**.
 - **hex_only(19d) 단독**: dino 보다 **오히려 낮음** (Δ −0.013/−0.027/−0.032, 3슬라이드 모두).
 
-## 결론 — 가설 **지지되지 않음** (이 지표 기준)
+## 결론 — 가설 **지지되지 않음** (224 in-domain, 이 지표 기준)
 
 방향(per-dim)은 일관되게 +였지만 **효과 크기가 ~1% 로 무의미**하고, 공정 가중(block-EQ)에서도
 3슬라이드 중 1개만 작게(+0.018) 올라 **재현성이 없다**. HEX 19-d 단독은 dino 보다 cell-type 응집이
-낮다. 즉 **HEX 를 더해도 Hist2Cell cell-type clustering 이 의미있게 좋아지지 않는다.**
+낮다. 즉 **(224 에서는) HEX 를 더해도 Hist2Cell cell-type clustering 이 의미있게 좋아지지 않는다.**
+
+> **146 과 대조 (`../hex_compare_146/summary.md`)**: 146(OOD-FOV)에선 DINO morphology 가 약해져
+> hex 가 **2/3 슬라이드에서 도움**(block-EQ +0.027~0.036). 즉 효과가 **해상도 의존적** — morphology 가
+> 강한 in-domain(224)에선 무의미, 약한 OOD(146)에선 부분 보완. 단 146 은 라벨도 OOD라 더 조심.
 
 ## ⚠️ 단, 지표의 구조적 한계 (negative 를 과신하지 말 것)
 - 여기서 **"cell type" = `prediction_log1p` 의 argmax (Hist2Cell dominant cell type)** 다.

@@ -1,0 +1,10 @@
+slide,rep,knn_purity_k10,note
+4245-BS1,prediction_log1p,0.7102,circular (label=argmax)
+4245-BS1,dino,0.466,
+4245-BS1,hex+dino,0.4718,
+4245-TS1,prediction_log1p,0.6755,circular (label=argmax)
+4245-TS1,dino,0.395,
+4245-TS1,hex+dino,0.405,
+4390-BS1,prediction_log1p,0.7108,circular (label=argmax)
+4390-BS1,dino,0.3648,
+4390-BS1,hex+dino,0.3731,
