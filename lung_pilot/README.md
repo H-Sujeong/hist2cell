@@ -52,6 +52,7 @@ HEX 학습 FOV = 224 px × **0.325 µm/px = 72.8 µm** → 0.5015 슬라이드�
 | ⑯ GT vs Hist2Cell vs DINO 비교 (실제 GT 기준, circular 아님) | ✅ 완료 (2026-06-01) | `visium_gt/compare/` (purity/accuracy csv + umap + summary). Hist2Cell≈GT, DINO 는 gap −0.12~−0.29 → hex 채울 여지 실재. HEX feature(FOV 재crop) 대기 |
 | ⑰ dino→19dim(PCA/중요도) 축소 후 hex 비교 (224·146) | ✅ 완료 (2026-06-01) | `hex_dino19_{224,146}/` (purity csv + umap + summary). 차원 맞추니 hex 가 dino 와 대등(224)/우세(146) — 이전 "hex 무의미" 는 차원지배 아티팩트 |
 | ⑱ hex19 패치별 하위10%→0(denoise) 후 비교 (224·146) | ✅ 완료 (2026-06-01) | `hex_dino19_denoise_{224,146}/`. purity 무영향(≤0.004), UMAP 모양만 호→분절(모양≠정보 실증) |
+| ⑲ hex19 패치당 상위50%만 유지(하위50%→0) 비교 (224·146) | ✅ 완료 (2026-06-01) | `hex_dino19_top50_{224,146}/`. hex 단독 약손해, 146 pca+hex 만 소폭↑(≤0.009) — 자를수록 손해 쪽 |
 
 ## 폴더 구조
 ```
@@ -80,8 +81,9 @@ lung_pilot/
 ├── visium_gt/            # Visium human lung GT 평가셋 (README + gt/ + dino_output/ + hist2cell_output/ + compare/)
 ├── hex_dino19_compare.py # dino 768→19(PCA/중요도) 축소 후 hex 비교 (차원 지배 보수)
 ├── hex_dino19_{224,146}/ # 224·146 결과 (knn_purity{,_pivot}.csv + umap + summary)
-├── hex_dino19_denoise.py # hex19 패치별 하위 N%→0 denoise 변형
-├── hex_dino19_denoise_{224,146}/ # denoise 결과 (purity 무영향, 모양만 변화)
+├── hex_dino19_denoise.py # hex19 패치별 하위 N%→0 denoise 변형 (--pct)
+├── hex_dino19_denoise_{224,146}/ # 하위10%→0 결과 (purity 무영향, 모양만 변화)
+├── hex_dino19_top50_{224,146}/   # 상위50%만 유지(--pct 50) 결과 (hex 단독 약손해)
 │   # HEX 추출 코드: hex_inference.ipynb + model_hex_compgat_clpg_cv.py (입력=Optimus 1536-d → 19 marker)
 ├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
 ├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
