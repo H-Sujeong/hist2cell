@@ -83,3 +83,6 @@ logs/
 
 # --- Allow project tracked notebooks even though .ipynb pattern is broad ---
 # (no negation needed — we only ignore checkpoints, not .ipynb)
+
+# Notion 업로드 유틸(로컬 전용)
+upload-to-notion.js
