@@ -221,7 +221,11 @@ def main():
         raise RuntimeError(f"cell_types pickle has {len(cell_types)} entries, expected 80")
 
     df = pd.DataFrame(final, columns=cell_types)
-    df.insert(0, "spot_id", list(data.spot_id))
+    if hasattr(data, "spot_id") and data.spot_id is not None:
+        spot_ids = list(data.spot_id)
+    else:  # .pt 에 spot_id 없으면(예: example_data Visium) 기본 인덱스 id 생성
+        spot_ids = [f"spot_{i}" for i in range(len(final))]
+    df.insert(0, "spot_id", spot_ids)
     df.insert(1, "X", data.pos[:, 0].numpy().astype(int))
     df.insert(2, "Y", data.pos[:, 1].numpy().astype(int))
     csv_path = out_dir / "predictions.csv"

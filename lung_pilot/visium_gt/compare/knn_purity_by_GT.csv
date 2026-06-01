@@ -1,0 +1,10 @@
+sample,rep,knn_purity_GTdom_k10,note
+WSA_LngSP10193347,GT,0.5464,label=argmax(GT); GT rep semi-circular
+WSA_LngSP10193347,Hist2Cell,0.5444,
+WSA_LngSP10193347,DINO,0.353,
+WSA_LngSP8759313,GT,0.9039,label=argmax(GT); GT rep semi-circular
+WSA_LngSP8759313,Hist2Cell,0.9013,
+WSA_LngSP8759313,DINO,0.7796,
+WSA_LngSP9258468,GT,0.6773,label=argmax(GT); GT rep semi-circular
+WSA_LngSP9258468,Hist2Cell,0.6759,
+WSA_LngSP9258468,DINO,0.3849,

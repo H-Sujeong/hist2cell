@@ -1,0 +1,4 @@
+sample,dominant_match_acc,mean_per_celltype_pearson,n_celltypes_scored,pooled_pearson
+WSA_LngSP10193347,0.8709,0.9383,80,0.992
+WSA_LngSP8759313,0.9475,0.9389,80,0.9964
+WSA_LngSP9258468,0.874,0.8585,80,0.9962

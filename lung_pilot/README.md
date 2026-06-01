@@ -48,6 +48,8 @@ HEX 학습 FOV = 224 px × **0.325 µm/px = 72.8 µm** → 0.5015 슬라이드�
 | ⑫ DINO cluster(=dominant ct) 패치 grid + 4-rep UMAP overlay (224·146) | ✅ 완료 (2026-05-29) | `dino_cluster_output/{224,146}/` (umap_4rep_by_dominant_ct.png + cluster_NN_*.png + dino_clusters_*.csv) + `summary.md` |
 | ⑬ hex+dino vs dino vs prediction 3×3 UMAP + kNN purity (224·146) | ✅ 완료 (2026-06-01) | `hex_compare_{224,146}/` (umap_3x3 + knn_purity{,_weighting}.csv + summary.md). 결과 **해상도 의존**: 224 미지지, 146(OOD) 2/3 슬라이드 부분 지지. TS1 agg 버그 정정 확인 |
 | ⑭ dominant cell type 별 대표 패치 montage + 조직학 가이드 (224·146) | ✅ 완료 (2026-06-01) | `celltype_examples_{224,146}/` (montage PNG + csv + summary). prediction centroid 최근접 예시 |
+| ⑮ Visium human lung GT 셋 3장 + DINO 추론 (hex 결정평가용) | ✅ 완료 (2026-06-01) | `visium_gt/` (dino_output/ + hist2cell_output/ + gt/ 80celltype + README) |
+| ⑯ GT vs Hist2Cell vs DINO 비교 (실제 GT 기준, circular 아님) | ✅ 완료 (2026-06-01) | `visium_gt/compare/` (purity/accuracy csv + umap + summary). Hist2Cell≈GT, DINO 는 gap −0.12~−0.29 → hex 채울 여지 실재. HEX feature(FOV 재crop) 대기 |
 
 ## 폴더 구조
 ```
@@ -72,6 +74,8 @@ lung_pilot/
 ├── celltype_examples.py  # dominant cell type 별 prediction centroid 최근접 대표 패치 (경로 인자형)
 ├── celltype_examples_224/ # 18 cell type 예시 montage + csv + summary(폐 조직학 가이드)
 ├── celltype_examples_146/ # 15 cell type 예시 montage + csv + summary(224 대비 FOV 차이)
+├── visium_gt_compare.py  # Visium GT vs Hist2Cell vs DINO 비교 (실제 GT 기준)
+├── visium_gt/            # Visium human lung GT 평가셋 (README + gt/ + dino_output/ + hist2cell_output/ + compare/)
 ├── dino_infer.py        # DINOv2 ViT-B/14 추론 (외부 /home/sjhong/dinov2 import + 가중치 절대경로)
 ├── dino_output/         # DINOv2 추론 결과 — <slide>/features_dinov2.npy [N,768] + _logs/
 ├── umap_compare.py      # 4 rep × 3 slide UMAP 시각화 (1×4 per-slide + cross-slide)
